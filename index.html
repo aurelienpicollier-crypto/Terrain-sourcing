@@ -6,296 +6,252 @@
 <title>Terrain Sourcing — Resort 5★</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <style>
 :root {
-  --navy: #0D1F3C; --slate: #1E3A5F; --gold: #C8A84B; --gold-l: #E8D48A;
-  --cream: #F7F4EE; --smoke: #EDEAE2; --text: #1A1A2E; --muted: #6B7280;
-  --white: #FFFFFF; --green: #2D6A2D; --amber: #92580A; --red: #8B2020;
-  --green-bg: #EAF3DE; --amber-bg: #FFF3DC; --red-bg: #FCEAEA;
-  --border: rgba(13,31,60,0.10); --shadow: 0 2px 20px rgba(13,31,60,0.08);
+  --navy:#0D1F3C;--slate:#1E3A5F;--gold:#C8A84B;--gold-l:#E8D48A;
+  --cream:#F7F4EE;--smoke:#EDEAE2;--text:#1A1A2E;--muted:#6B7280;
+  --white:#FFFFFF;--green:#2D6A2D;--amber:#92580A;--red:#8B2020;
+  --green-bg:#EAF3DE;--amber-bg:#FFF3DC;--red-bg:#FCEAEA;
+  --border:rgba(13,31,60,0.10);--shadow:0 2px 20px rgba(13,31,60,0.08);
 }
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--text); min-height: 100vh; }
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);}
 
-header {
-  background: var(--navy); padding: 0 32px; display: flex; align-items: center;
-  justify-content: space-between; height: 60px; position: sticky; top: 0; z-index: 100;
-  border-bottom: 1px solid rgba(200,168,75,0.3);
-}
-.logo { font-family: 'Cormorant Garamond', serif; font-size: 18px; font-weight: 600; color: var(--white); letter-spacing: 0.04em; }
-.logo span { color: var(--gold); }
-.header-meta { font-size: 12px; color: rgba(255,255,255,0.45); letter-spacing: 0.06em; text-transform: uppercase; }
-.container { max-width: 1280px; margin: 0 auto; padding: 0 32px; }
+/* HEADER */
+header{background:var(--navy);padding:0 32px;display:flex;align-items:center;justify-content:space-between;height:60px;position:sticky;top:0;z-index:1000;border-bottom:1px solid rgba(200,168,75,0.3);}
+.logo{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;color:var(--white);letter-spacing:.04em;}
+.logo span{color:var(--gold);}
+.header-right{display:flex;align-items:center;gap:20px;}
+.header-meta{font-size:12px;color:rgba(255,255,255,0.4);letter-spacing:.06em;text-transform:uppercase;}
+.nav-tabs{display:flex;}
+.nav-tab{padding:8px 22px;font-size:13px;font-weight:500;color:rgba(255,255,255,0.45);cursor:pointer;border:none;border-bottom:2px solid transparent;background:none;font-family:'DM Sans',sans-serif;transition:all .15s;letter-spacing:.02em;}
+.nav-tab:hover{color:rgba(255,255,255,.8);}
+.nav-tab.active{color:var(--gold);border-bottom-color:var(--gold);}
 
-.controls {
-  background: var(--white); border-bottom: 1px solid var(--border); padding: 16px 32px;
-  display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
-  position: sticky; top: 60px; z-index: 90;
-}
-.search-wrap { position: relative; flex: 1; min-width: 200px; }
-.search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; opacity: 0.4; }
-input[type="text"] {
-  width: 100%; padding: 9px 12px 9px 36px; border: 1px solid var(--border); border-radius: 8px;
-  font-family: 'DM Sans', sans-serif; font-size: 13px; background: var(--cream); color: var(--text);
-  outline: none; transition: border-color 0.2s;
-}
-input[type="text"]:focus { border-color: var(--gold); }
-select {
-  padding: 9px 32px 9px 12px; border: 1px solid var(--border); border-radius: 8px;
-  font-family: 'DM Sans', sans-serif; font-size: 13px; background: var(--cream); color: var(--text);
-  outline: none; appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%236B7280' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat; background-position: right 10px center; cursor: pointer; transition: border-color 0.2s;
-}
-select:focus { border-color: var(--gold); }
-.filter-pills { display: flex; gap: 6px; flex-wrap: wrap; }
-.pill {
-  padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 500;
-  border: 1px solid var(--border); background: transparent; color: var(--muted);
-  cursor: pointer; transition: all 0.15s; white-space: nowrap; font-family: 'DM Sans', sans-serif;
-}
-.pill:hover { border-color: var(--gold); color: var(--text); }
-.pill.active { background: var(--navy); color: var(--white); border-color: var(--navy); }
-.btn-add {
-  padding: 9px 18px; background: var(--gold); color: var(--navy); border: none; border-radius: 8px;
-  font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer;
-  white-space: nowrap; transition: background 0.15s; margin-left: auto;
-}
-.btn-add:hover { background: var(--gold-l); }
-.export-btn {
-  padding: 9px 16px; border: 1px solid var(--border); border-radius: 8px; background: transparent;
-  font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--muted); cursor: pointer; transition: all 0.15s;
-}
-.export-btn:hover { border-color: var(--navy); color: var(--navy); }
+/* PAGES */
+.page{display:none;}
+.page.active{display:block;}
+#page-map{height:calc(100vh - 60px);display:none;flex-direction:column;}
+#page-map.active{display:flex;}
 
-.stats-strip { padding: 20px 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-.stat-card { background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 16px 20px; }
-.stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
-.stat-val { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 500; color: var(--navy); line-height: 1; }
-.stat-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+/* CONTROLS */
+.container{max-width:1280px;margin:0 auto;padding:0 32px;}
+.controls{background:var(--white);border-bottom:1px solid var(--border);padding:16px 32px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;position:sticky;top:60px;z-index:90;}
+.search-wrap{position:relative;flex:1;min-width:200px;}
+.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:14px;height:14px;opacity:.4;}
+input[type=text]{width:100%;padding:9px 12px 9px 36px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;background:var(--cream);color:var(--text);outline:none;transition:border-color .2s;}
+input[type=text]:focus{border-color:var(--gold);}
+select{padding:9px 32px 9px 12px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;background:var(--cream);color:var(--text);outline:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%236B7280' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;cursor:pointer;}
+select:focus{border-color:var(--gold);}
+.filter-pills{display:flex;gap:6px;flex-wrap:wrap;}
+.pill{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:500;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all .15s;white-space:nowrap;font-family:'DM Sans',sans-serif;}
+.pill:hover{border-color:var(--gold);color:var(--text);}
+.pill.active{background:var(--navy);color:var(--white);border-color:var(--navy);}
+.btn-add{padding:9px 18px;background:var(--gold);color:var(--navy);border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;transition:background .15s;margin-left:auto;}
+.btn-add:hover{background:var(--gold-l);}
+.export-btn{padding:9px 16px;border:1px solid var(--border);border-radius:8px;background:transparent;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--muted);cursor:pointer;transition:all .15s;}
+.export-btn:hover{border-color:var(--navy);color:var(--navy);}
 
-.terrain-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; padding-bottom: 48px; }
-.card {
-  background: var(--white); border: 1px solid var(--border); border-radius: 16px;
-  padding: 20px 22px; cursor: pointer;
-  transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s;
-  position: relative; overflow: hidden;
-}
-.card:hover { box-shadow: var(--shadow); transform: translateY(-2px); border-color: rgba(200,168,75,0.3); }
-.card.shortlisted::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--gold); }
-.card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
-.card-name { font-family: 'Cormorant Garamond', serif; font-size: 18px; font-weight: 600; color: var(--navy); line-height: 1.2; }
-.card-loc { font-size: 12px; color: var(--muted); margin-top: 3px; }
-.country-badge { font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 20px; white-space: nowrap; flex-shrink: 0; }
-.badge-FR { background: #E6F1FB; color: #0C447C; }
-.badge-ES { background: #EAF3DE; color: #27500A; }
-.badge-PT { background: #EAF3DE; color: #1a5c1a; }
-.badge-IT { background: #FFF3DC; color: #7a4800; }
-.badge-GR { background: #FBEAF0; color: #72243E; }
-.badge-HR { background: #E1F5EE; color: #085041; }
-.badge-ME { background: #FFF3DC; color: #633806; }
-.divider { height: 1px; background: var(--smoke); margin: 12px 0; }
-.meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.meta-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
-.meta-val { font-size: 13px; font-weight: 500; color: var(--text); }
-.status-row { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
-.dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-.dot-green { background: #2D6A2D; }
-.dot-amber { background: #92580A; }
-.dot-red { background: #8B2020; }
-.status-text { font-size: 12px; color: var(--muted); }
-.score-wrap { margin-top: 12px; }
-.score-top { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-bottom: 5px; }
-.score-num { font-weight: 500; }
-.score-bar { height: 3px; background: var(--smoke); border-radius: 2px; overflow: hidden; }
-.score-fill { height: 100%; border-radius: 2px; }
-.tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
-.tag { font-size: 11px; background: var(--cream); color: var(--muted); padding: 2px 8px; border-radius: 20px; }
+/* STATS */
+.stats-strip{padding:20px 0;display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+.stat-card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:16px 20px;}
+.stat-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;}
+.stat-val{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:500;color:var(--navy);line-height:1;}
+.stat-sub{font-size:11px;color:var(--muted);margin-top:4px;}
 
-/* ── Modal ── */
-.modal-overlay {
-  display: none; position: fixed; inset: 0; background: rgba(13,31,60,0.55);
-  z-index: 200; align-items: flex-start; justify-content: center; padding: 24px 16px;
-  overflow-y: auto;
-}
-.modal-overlay.open { display: flex; }
-.modal {
-  background: var(--white); border-radius: 20px; width: 100%; max-width: 720px;
-  padding: 32px; position: relative; margin: auto;
-}
-.modal-close {
-  position: absolute; top: 20px; right: 20px; background: var(--smoke); border: none;
-  border-radius: 50%; width: 32px; height: 32px; font-size: 18px; cursor: pointer;
-  color: var(--muted); display: flex; align-items: center; justify-content: center; transition: background 0.15s;
-}
-.modal-close:hover { background: var(--smoke); color: var(--text); }
-.modal-title { font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 600; color: var(--navy); margin-bottom: 4px; }
-.modal-sub { font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+/* GRID */
+.terrain-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;padding-bottom:48px;}
+.card{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:20px 22px;cursor:pointer;transition:box-shadow .2s,transform .2s,border-color .2s;position:relative;overflow:hidden;}
+.card:hover{box-shadow:var(--shadow);transform:translateY(-2px);border-color:rgba(200,168,75,.3);}
+.card.shortlisted::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--gold);}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;}
+.card-name{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;color:var(--navy);line-height:1.2;}
+.card-loc{font-size:12px;color:var(--muted);margin-top:3px;}
+.country-badge{font-size:11px;font-weight:500;padding:3px 10px;border-radius:20px;white-space:nowrap;flex-shrink:0;}
+.badge-FR{background:#E6F1FB;color:#0C447C;}.badge-ES{background:#EAF3DE;color:#27500A;}
+.badge-PT{background:#EAF3DE;color:#1a5c1a;}.badge-IT{background:#FFF3DC;color:#7a4800;}
+.badge-GR{background:#FBEAF0;color:#72243E;}.badge-HR{background:#E1F5EE;color:#085041;}
+.badge-ME{background:#FFF3DC;color:#633806;}
+.divider{height:1px;background:var(--smoke);margin:12px 0;}
+.meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.meta-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px;}
+.meta-val{font-size:13px;font-weight:500;color:var(--text);}
+.status-row{display:flex;align-items:center;gap:6px;margin-top:4px;}
+.dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.dot-green{background:#2D6A2D;}.dot-amber{background:#92580A;}.dot-red{background:#8B2020;}
+.status-text{font-size:12px;color:var(--muted);}
+.score-wrap{margin-top:12px;}
+.score-top{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:5px;}
+.score-num{font-weight:500;}
+.score-bar{height:3px;background:var(--smoke);border-radius:2px;overflow:hidden;}
+.score-fill{height:100%;border-radius:2px;}
+.tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px;}
+.tag{font-size:11px;background:var(--cream);color:var(--muted);padding:2px 8px;border-radius:20px;}
 
-/* ── Tabs inside modal ── */
-.modal-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--smoke); margin: 16px 0 20px; }
-.modal-tab {
-  padding: 8px 18px; font-size: 13px; font-weight: 500; color: var(--muted);
-  cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px;
-  transition: all 0.15s; background: none; border-top: none; border-left: none; border-right: none;
-  font-family: 'DM Sans', sans-serif;
-}
-.modal-tab.active { color: var(--navy); border-bottom-color: var(--gold); }
-.modal-tab:hover { color: var(--text); }
-.tab-panel { display: none; }
-.tab-panel.active { display: block; }
+/* MAP */
+.map-controls{background:var(--white);border-bottom:1px solid var(--border);padding:12px 32px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;flex-shrink:0;}
+.map-legend{display:flex;gap:16px;align-items:center;margin-left:auto;flex-wrap:wrap;}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);}
+.legend-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0;}
+#map{flex:1;min-height:0;}
 
-/* ── Detail panel ── */
-.modal-section { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gold); margin: 18px 0 10px; border-bottom: 1px solid var(--smoke); padding-bottom: 6px; }
-.modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.modal-item { background: var(--cream); border-radius: 10px; padding: 12px 14px; }
-.modal-item-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
-.modal-item-val { font-size: 14px; font-weight: 500; color: var(--text); }
+/* Custom marker */
+.marker-pin{width:32px;height:32px;border-radius:50%;border:2.5px solid white;display:flex;align-items:center;justify-content:center;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;color:white;box-shadow:0 2px 10px rgba(0,0,0,.25);cursor:pointer;}
 
-/* ── Status selector ── */
-.status-selector { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
-.status-btn {
-  padding: 7px 16px; border-radius: 20px; font-size: 12px; font-weight: 500;
-  border: 1px solid var(--border); background: transparent; color: var(--muted);
-  cursor: pointer; transition: all 0.15s; font-family: 'DM Sans', sans-serif;
-}
-.status-btn:hover { border-color: var(--gold); color: var(--text); }
-.status-btn.active-disponible { background: var(--green-bg); color: var(--green); border-color: var(--green); }
-.status-btn.active-negociation { background: var(--amber-bg); color: var(--amber); border-color: var(--amber); }
-.status-btn.active-option { background: var(--amber-bg); color: var(--amber); border-color: var(--amber); }
-.status-btn.active-vendu { background: var(--red-bg); color: var(--red); border-color: var(--red); }
+/* Leaflet popup */
+.leaflet-popup-content-wrapper{border-radius:14px!important;box-shadow:0 8px 32px rgba(13,31,60,.18)!important;padding:0!important;overflow:hidden;border:none!important;}
+.leaflet-popup-content{margin:0!important;min-width:240px!important;}
+.leaflet-popup-tip{background:white!important;}
+.popup-header{background:var(--navy);padding:12px 16px;}
+.popup-name{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600;color:white;line-height:1.2;}
+.popup-loc{font-size:11px;color:rgba(255,255,255,.55);margin-top:2px;}
+.popup-body{padding:12px 16px;}
+.popup-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;}
+.popup-item{background:var(--cream);border-radius:7px;padding:6px 9px;}
+.popup-item-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;}
+.popup-item-val{font-size:12px;font-weight:500;color:var(--text);}
+.popup-score-bar{height:3px;background:var(--smoke);border-radius:2px;overflow:hidden;margin-bottom:10px;}
+.popup-score-fill{height:100%;border-radius:2px;}
+.popup-tags{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px;}
+.popup-tag{font-size:10px;background:var(--cream);color:var(--muted);padding:2px 7px;border-radius:20px;}
+.popup-btn{width:100%;padding:8px;background:var(--navy);color:white;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:background .15s;}
+.popup-btn:hover{background:var(--slate);}
+.popup-status{display:inline-flex;align-items:center;gap:5px;margin-top:6px;}
+.popup-dot{width:7px;height:7px;border-radius:50%;}
 
-/* ── Edit fields ── */
-.edit-field {
-  width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px;
-  font-family: 'DM Sans', sans-serif; font-size: 13px; background: var(--cream);
-  color: var(--text); outline: none; transition: border-color 0.2s; resize: vertical;
-}
-.edit-field:focus { border-color: var(--gold); background: var(--white); }
-.edit-label { font-size: 11px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 5px; margin-top: 14px; display: block; }
-.save-inline {
-  padding: 8px 18px; background: var(--navy); color: var(--white); border: none; border-radius: 8px;
-  font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer;
-  margin-top: 16px; transition: background 0.15s;
-}
-.save-inline:hover { background: var(--slate); }
-.save-confirm { font-size: 12px; color: var(--green); margin-top: 8px; display: none; }
-
-/* ── Contacts ── */
-.contact-card {
-  background: var(--cream); border-radius: 12px; padding: 14px 16px; margin-bottom: 10px;
-  position: relative;
-}
-.contact-name { font-size: 14px; font-weight: 500; color: var(--navy); }
-.contact-role { font-size: 12px; color: var(--muted); margin-top: 2px; }
-.contact-meta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
-.contact-meta a { font-size: 12px; color: var(--slate); text-decoration: none; }
-.contact-meta a:hover { color: var(--gold); }
-.contact-note { font-size: 12px; color: var(--muted); margin-top: 8px; font-style: italic; }
-.contact-del {
-  position: absolute; top: 10px; right: 12px; background: none; border: none;
-  font-size: 16px; color: var(--muted); cursor: pointer; padding: 2px 6px; border-radius: 4px;
-}
-.contact-del:hover { color: var(--red); background: var(--red-bg); }
-.add-contact-form { background: var(--smoke); border-radius: 12px; padding: 16px; margin-top: 4px; }
-.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.btn-add-contact {
-  padding: 8px 16px; border: 1px dashed var(--border); border-radius: 8px; background: transparent;
-  font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--muted); cursor: pointer;
-  width: 100%; margin-top: 4px; transition: all 0.15s;
-}
-.btn-add-contact:hover { border-color: var(--gold); color: var(--text); }
-
-/* ── Journal / Notes ── */
-.journal-entry {
-  padding: 12px 14px; border-left: 2px solid var(--gold); background: var(--cream);
-  border-radius: 0 10px 10px 0; margin-bottom: 10px; position: relative;
-}
-.journal-date { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
-.journal-text { font-size: 13px; color: var(--text); line-height: 1.5; }
-.journal-del {
-  position: absolute; top: 8px; right: 10px; background: none; border: none;
-  font-size: 14px; color: var(--muted); cursor: pointer; padding: 2px 5px; border-radius: 4px;
-}
-.journal-del:hover { color: var(--red); background: var(--red-bg); }
-
-/* ── Modal actions ── */
-.modal-actions { display: flex; gap: 10px; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--smoke); }
-.btn-shortlist, .btn-delete {
-  padding: 10px 18px; border-radius: 8px; font-family: 'DM Sans', sans-serif;
-  font-size: 13px; font-weight: 500; cursor: pointer; border: 1px solid var(--border);
-  background: transparent; color: var(--text); transition: all 0.15s;
-}
-.btn-shortlist:hover { background: var(--navy); color: var(--white); border-color: var(--navy); }
-.btn-delete { margin-left: auto; color: var(--red); border-color: rgba(139,32,32,0.2); }
-.btn-delete:hover { background: var(--red-bg); border-color: var(--red); }
-
-/* ── Add terrain form ── */
-.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.form-group { display: flex; flex-direction: column; gap: 5px; }
-.form-group.full { grid-column: 1 / -1; }
-.form-label { font-size: 11px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
-.form-input {
-  padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px;
-  font-family: 'DM Sans', sans-serif; font-size: 13px; background: var(--cream);
-  color: var(--text); outline: none; transition: border-color 0.2s; width: 100%;
-}
-.form-input:focus { border-color: var(--gold); }
-.btn-submit {
-  padding: 11px 22px; background: var(--navy); color: var(--white); border: none; border-radius: 8px;
-  font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer;
-  width: 100%; margin-top: 8px; transition: background 0.15s;
-}
-.btn-submit:hover { background: var(--slate); }
-.empty { text-align: center; padding: 80px 20px; color: var(--muted); grid-column: 1/-1; }
-.empty-title { font-family: 'Cormorant Garamond', serif; font-size: 22px; color: var(--navy); margin-bottom: 8px; }
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(13,31,60,.55);z-index:2000;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--white);border-radius:20px;width:100%;max-width:720px;padding:32px;position:relative;margin:auto;}
+.modal-close{position:absolute;top:20px;right:20px;background:var(--smoke);border:none;border-radius:50%;width:32px;height:32px;font-size:18px;cursor:pointer;color:var(--muted);display:flex;align-items:center;justify-content:center;}
+.modal-close:hover{color:var(--text);}
+.modal-title{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;color:var(--navy);margin-bottom:4px;}
+.modal-sub{font-size:13px;color:var(--muted);margin-bottom:6px;}
+.modal-tabs{display:flex;border-bottom:1px solid var(--smoke);margin:16px 0 20px;}
+.modal-tab{padding:8px 18px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;background:none;border-top:none;border-left:none;border-right:none;font-family:'DM Sans',sans-serif;}
+.modal-tab.active{color:var(--navy);border-bottom-color:var(--gold);}
+.tab-panel{display:none;}.tab-panel.active{display:block;}
+.modal-section{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:var(--gold);margin:18px 0 10px;border-bottom:1px solid var(--smoke);padding-bottom:6px;}
+.modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.modal-item{background:var(--cream);border-radius:10px;padding:12px 14px;}
+.modal-item-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;}
+.modal-item-val{font-size:14px;font-weight:500;color:var(--text);}
+.status-selector{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;}
+.status-btn{padding:7px 16px;border-radius:20px;font-size:12px;font-weight:500;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif;}
+.status-btn:hover{border-color:var(--gold);color:var(--text);}
+.status-btn.active-disponible{background:var(--green-bg);color:var(--green);border-color:var(--green);}
+.status-btn.active-negociation{background:var(--amber-bg);color:var(--amber);border-color:var(--amber);}
+.status-btn.active-option{background:var(--amber-bg);color:var(--amber);border-color:var(--amber);}
+.status-btn.active-vendu{background:var(--red-bg);color:var(--red);border-color:var(--red);}
+.edit-field{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;background:var(--cream);color:var(--text);outline:none;transition:border-color .2s;resize:vertical;}
+.edit-field:focus{border-color:var(--gold);background:var(--white);}
+.edit-label{font-size:11px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px;margin-top:14px;display:block;}
+.save-inline{padding:8px 18px;background:var(--navy);color:var(--white);border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;margin-top:16px;transition:background .15s;}
+.save-inline:hover{background:var(--slate);}
+.save-confirm{font-size:12px;color:var(--green);margin-top:8px;display:none;}
+.contact-card{background:var(--cream);border-radius:12px;padding:14px 16px;margin-bottom:10px;position:relative;}
+.contact-name{font-size:14px;font-weight:500;color:var(--navy);}
+.contact-role{font-size:12px;color:var(--muted);margin-top:2px;}
+.contact-meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;}
+.contact-meta a{font-size:12px;color:var(--slate);text-decoration:none;}
+.contact-meta a:hover{color:var(--gold);}
+.contact-note{font-size:12px;color:var(--muted);margin-top:8px;font-style:italic;}
+.contact-del{position:absolute;top:10px;right:12px;background:none;border:none;font-size:16px;color:var(--muted);cursor:pointer;padding:2px 6px;border-radius:4px;}
+.contact-del:hover{color:var(--red);background:var(--red-bg);}
+.add-contact-form{background:var(--smoke);border-radius:12px;padding:16px;margin-top:4px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.btn-add-contact{padding:8px 16px;border:1px dashed var(--border);border-radius:8px;background:transparent;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--muted);cursor:pointer;width:100%;margin-top:4px;transition:all .15s;}
+.btn-add-contact:hover{border-color:var(--gold);color:var(--text);}
+.journal-entry{padding:12px 14px;border-left:2px solid var(--gold);background:var(--cream);border-radius:0 10px 10px 0;margin-bottom:10px;position:relative;}
+.journal-date{font-size:11px;color:var(--muted);margin-bottom:4px;}
+.journal-text{font-size:13px;color:var(--text);line-height:1.5;}
+.journal-del{position:absolute;top:8px;right:10px;background:none;border:none;font-size:14px;color:var(--muted);cursor:pointer;padding:2px 5px;border-radius:4px;}
+.journal-del:hover{color:var(--red);background:var(--red-bg);}
+.modal-actions{display:flex;gap:10px;margin-top:24px;padding-top:16px;border-top:1px solid var(--smoke);}
+.btn-shortlist,.btn-delete{padding:10px 18px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text);transition:all .15s;}
+.btn-shortlist:hover{background:var(--navy);color:var(--white);border-color:var(--navy);}
+.btn-delete{margin-left:auto;color:var(--red);border-color:rgba(139,32,32,.2);}
+.btn-delete:hover{background:var(--red-bg);border-color:var(--red);}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.form-group{display:flex;flex-direction:column;gap:5px;}
+.form-group.full{grid-column:1/-1;}
+.form-label{font-size:11px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;}
+.form-input{padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;background:var(--cream);color:var(--text);outline:none;transition:border-color .2s;width:100%;}
+.form-input:focus{border-color:var(--gold);}
+.btn-submit{padding:11px 22px;background:var(--navy);color:var(--white);border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;width:100%;margin-top:8px;transition:background .15s;}
+.btn-submit:hover{background:var(--slate);}
+.empty{text-align:center;padding:80px 20px;color:var(--muted);grid-column:1/-1;}
+.empty-title{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--navy);margin-bottom:8px;}
 </style>
 </head>
 <body>
 
 <header>
   <div class="logo">RESORT <span>SOURCING</span></div>
-  <div class="header-meta">Base de données terrains · Confidentiel</div>
+  <div class="header-right">
+    <nav class="nav-tabs">
+      <button class="nav-tab active" onclick="showPage('list',this)">&#9776; Liste</button>
+      <button class="nav-tab" onclick="showPage('map',this)">&#9899; Carte</button>
+    </nav>
+    <div class="header-meta">Confidentiel</div>
+  </div>
 </header>
 
-<div style="background:var(--white);border-bottom:1px solid var(--border);">
-  <div class="container">
-    <div class="controls" style="padding:16px 0;">
-      <div class="search-wrap">
-        <svg class="search-icon" viewBox="0 0 16 16" fill="none"><circle cx="6.5" cy="6.5" r="5" stroke="#6B7280" stroke-width="1.5"/><path d="M10.5 10.5L14 14" stroke="#6B7280" stroke-width="1.5" stroke-linecap="round"/></svg>
-        <input type="text" id="search" placeholder="Rechercher un terrain, ville, région…" oninput="render()">
+<!-- ═══ PAGE LISTE ═══ -->
+<div id="page-list" class="page active">
+  <div style="background:var(--white);border-bottom:1px solid var(--border);">
+    <div class="container">
+      <div class="controls" style="padding:16px 0;">
+        <div class="search-wrap">
+          <svg class="search-icon" viewBox="0 0 16 16" fill="none"><circle cx="6.5" cy="6.5" r="5" stroke="#6B7280" stroke-width="1.5"/><path d="M10.5 10.5L14 14" stroke="#6B7280" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <input type="text" id="search" placeholder="Rechercher un terrain, ville, région…" oninput="render()">
+        </div>
+        <select id="sort" onchange="render()">
+          <option value="score">Trier par score</option>
+          <option value="prix">Trier par prix</option>
+          <option value="surface">Trier par surface</option>
+          <option value="nom">Trier par nom</option>
+        </select>
+        <div class="filter-pills" id="pills"></div>
+        <button class="export-btn" onclick="exportCSV()">↓ Export CSV</button>
+        <button class="btn-add" onclick="openAdd()">+ Ajouter</button>
       </div>
-      <select id="sort" onchange="render()">
-        <option value="score">Trier par score</option>
-        <option value="prix">Trier par prix</option>
-        <option value="surface">Trier par surface</option>
-        <option value="nom">Trier par nom</option>
-      </select>
-      <div class="filter-pills" id="pills"></div>
-      <button class="export-btn" onclick="exportCSV()">↓ Export CSV</button>
-      <button class="btn-add" onclick="openAdd()">+ Ajouter un terrain</button>
     </div>
+  </div>
+  <div class="container">
+    <div class="stats-strip" id="stats"></div>
+    <div class="terrain-grid" id="grid"></div>
   </div>
 </div>
 
-<div class="container">
-  <div class="stats-strip" id="stats"></div>
-  <div class="terrain-grid" id="grid"></div>
+<!-- ═══ PAGE CARTE ═══ -->
+<div id="page-map" class="page">
+  <div class="map-controls">
+    <div class="filter-pills" id="map-pills"></div>
+    <div class="map-legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#2D6A2D"></div>Disponible</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#C8A84B;border:1.5px solid #0D1F3C"></div>Shortlisté</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#92580A"></div>Négociation / Option</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#8B2020"></div>Vendu</div>
+    </div>
+  </div>
+  <div id="map"></div>
 </div>
 
-<!-- Detail modal -->
+<!-- ═══ MODAL DETAIL ═══ -->
 <div class="modal-overlay" id="detail-modal" onclick="closeDetailClick(event)">
   <div class="modal" id="detail-content"></div>
 </div>
 
-<!-- Add modal -->
+<!-- ═══ MODAL AJOUT ═══ -->
 <div class="modal-overlay" id="add-modal" onclick="closeAdd(event)">
   <div class="modal">
     <button class="modal-close" onclick="document.getElementById('add-modal').classList.remove('open')">×</button>
     <div class="modal-title">Ajouter un terrain</div>
     <div class="modal-sub">Remplissez les informations du nouveau terrain</div>
     <div class="form-grid" style="margin-top:16px">
-      <div class="form-group full"><div class="form-label">Nom du terrain *</div><input class="form-input" id="f-nom" placeholder="Ex: Punta San Giorgio"></div>
+      <div class="form-group full"><div class="form-label">Nom *</div><input class="form-input" id="f-nom" placeholder="Ex: Punta San Giorgio"></div>
       <div class="form-group"><div class="form-label">Ville *</div><input class="form-input" id="f-ville" placeholder="Ex: Portofino"></div>
       <div class="form-group"><div class="form-label">Région</div><input class="form-input" id="f-region" placeholder="Ex: Ligurie, Italie"></div>
       <div class="form-group"><div class="form-label">Pays *</div>
@@ -313,127 +269,122 @@ select:focus { border-color: var(--gold); }
       <div class="form-group"><div class="form-label">Zonage</div><input class="form-input" id="f-zonage" placeholder="Zone hôtelière"></div>
       <div class="form-group"><div class="form-label">Statut</div>
         <select class="form-input" id="f-statut">
-          <option>Disponible</option><option>Négociation</option>
-          <option>Option posée</option><option>Vendu</option>
+          <option>Disponible</option><option>Négociation</option><option>Option posée</option><option>Vendu</option>
         </select>
       </div>
       <div class="form-group"><div class="form-label">Score /100</div><input class="form-input" id="f-score" type="number" min="0" max="100" placeholder="88"></div>
       <div class="form-group"><div class="form-label">Potentiel hôtelier</div><input class="form-input" id="f-potentiel" placeholder="20 clés boutique 5★"></div>
       <div class="form-group full"><div class="form-label">Risques identifiés</div><input class="form-input" id="f-risques" placeholder="Zone protégée, permis complexe…"></div>
-      <div class="form-group full"><div class="form-label">Tags (séparés par virgules)</div><input class="form-input" id="f-tags" placeholder="Vue mer, Clientèle yacht, Prestige"></div>
+      <div class="form-group full"><div class="form-label">Tags (virgules)</div><input class="form-input" id="f-tags" placeholder="Vue mer, Clientèle yacht, Prestige"></div>
     </div>
     <button class="btn-submit" onclick="addTerrain()">Enregistrer le terrain</button>
   </div>
 </div>
 
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-const STORAGE_KEY = 'resort_sourcing_v3';
+const STORAGE_KEY='resort_sourcing_v3';
+const COUNTRIES={FR:'France',ES:'Espagne',PT:'Portugal',IT:'Italie',GR:'Grèce',HR:'Croatie',ME:'Monténégro',OTHER:'Autre'};
+const STATUTS=['Disponible','Négociation','Option posée','Vendu'];
 
-const INIT_DATA = [
-  { id:1, nom:"Domaine de la Vigie", ville:"Saint-Jean-Cap-Ferrat", pays:"FR", region:"Alpes-Maritimes, Côte d'Azur", surface:6800, prix:4800000, ensoleillement:"2900h/an", acces:"20 min aéroport Nice, hélipad possible", zonage:"Zone NH – hôtelière protégée", statut:"Négociation", score:94, tags:["Prestige mondial","Clientèle royale & CEOs","Vue Monaco","Voisinage Rothschild"], risques:"Réglementation stricte, prix élevés, rareté extrême", potentiel:"18 clés ultra-luxe — ADR >1 500€/nuit", shortlist:true, notes:"L'adresse la plus bankable de la Riviera.", contacts:[], journal:[] },
-  { id:2, nom:"Punta Mesco Hillside", ville:"Portofino", pays:"IT", region:"Ligurie, Gênes", surface:9200, prix:4200000, ensoleillement:"2700h/an", acces:"1h aéroport Gênes, accès yacht", zonage:"Zone parc naturel – dérogation resort", statut:"Disponible", score:92, tags:["Clientèle Belmond & Four Seasons","Village iconique","Accès mer privé"], risques:"Zone naturelle protégée — permis complexe", potentiel:"20 clés boutique — clientèle yacht internationale", shortlist:true, notes:"Portofino est la référence mondiale du discret et du cher.", contacts:[], journal:[] },
-  { id:3, nom:"Cap d'Antibes Sud", ville:"Antibes", pays:"FR", region:"Alpes-Maritimes, Côte d'Azur", surface:11000, prix:4500000, ensoleillement:"2880h/an", acces:"15 min aéroport Nice, marina privée", zonage:"Zone NH – hôtelière", statut:"Disponible", score:91, tags:["Eden Roc voisin","Clientèle billionaires","Plage privée","Festival de Cannes crowd"], risques:"Concurrence Hôtel du Cap, prix foncier extrême", potentiel:"25 clés ultra-luxe — voisinage Eden Roc", shortlist:true, notes:"Terrain à 400m de l'Hôtel du Cap-Eden-Roc.", contacts:[], journal:[] },
-  { id:4, nom:"Caldera View Estate", ville:"Oia", pays:"GR", region:"Santorin, Cyclades", surface:7500, prix:3200000, ensoleillement:"3100h/an", acces:"30 min aéroport Santorin", zonage:"Zone touristique – Cyclades", statut:"Disponible", score:90, tags:["Coucher de soleil #1 mondial","Clientèle honeymoon","Vues caldera","Destination iconique"], risques:"Accès île — saisonnalité forte mai-oct.", potentiel:"15 suites infinity — ADR >1 200€/nuit", shortlist:true, notes:"Santorin est la destination la plus photographiée au monde.", contacts:[], journal:[] },
-  { id:5, nom:"Costa Navarino Promontoire", ville:"Pylos", pays:"GR", region:"Péloponnèse, Messénie", surface:28000, prix:3800000, ensoleillement:"3000h/an", acces:"45 min aéroport Kalamata", zonage:"Zone touristique développée", statut:"Disponible", score:88, tags:["Mandarin Oriental voisin","4 golfs signature","Clientèle UHNWI","Plage immaculée"], risques:"Concurrence des resorts existants sur site", potentiel:"35 clés — entre Mandarin & W Hotels", shortlist:false, notes:"Costa Navarino est le Saint-Barths grec.", contacts:[], journal:[] },
-  { id:6, nom:"Punta Tragara Heights", ville:"Capri", pays:"IT", region:"Campanie, Naples", surface:5800, prix:4900000, ensoleillement:"2800h/an", acces:"Ferry 45min Naples, hélicoptère", zonage:"Zone hôtelière insulaire", statut:"Négociation", score:89, tags:["Île mythique","Jet-set international","Faraglioni view","Clientèle ultra-premium"], risques:"Accès insulaire, saisonnalité, permis strict", potentiel:"16 suites — ADR >1 800€/nuit haute saison", shortlist:true, notes:"Capri est hors-catégorie. Quisisana = 2 000€/nuit base.", contacts:[], journal:[] },
-  { id:7, nom:"Mykonos Aleomandra Cliff", ville:"Mykonos", pays:"GR", region:"Cyclades, Égée méridionale", surface:8200, prix:2900000, ensoleillement:"3000h/an", acces:"40 min aéroport Mykonos", zonage:"Zone touristique – Cyclades", statut:"Disponible", score:86, tags:["Clientèle yacht","Wellness & lifestyle","Vue île Delos","Tech billionaires"], risques:"Forte saisonnalité — 4 mois peak, hiver mort", potentiel:"22 clés — clientèle fashion & tech billionaires", shortlist:false, notes:"Mykonos capte une clientèle 30-50 ans très dépensière.", contacts:[], journal:[] },
-  { id:8, nom:"Marbella Golden Mile Est", ville:"Marbella", pays:"ES", region:"Costa del Sol, Andalousie", surface:14500, prix:4100000, ensoleillement:"3200h/an", acces:"40 min aéroport Málaga", zonage:"Sol turístico – resort", statut:"Disponible", score:87, tags:["300 jours de soleil","Porto Banús voisin","Middle East & Gulf clientèle","Golf & polo"], risques:"Marché saturé en entrée de gamme — différenciation indispensable", potentiel:"40 clés resort + spa — saison 10 mois", shortlist:false, notes:"Meilleure destination Europe 2024.", contacts:[], journal:[] },
-  { id:9, nom:"Algarve Ponta da Piedade", ville:"Lagos", pays:"PT", region:"Algarve, Faro", surface:18000, prix:3500000, ensoleillement:"3100h/an", acces:"1h aéroport Faro, 2h Lisbonne", zonage:"Zone touristique côtière", statut:"Disponible", score:85, tags:["Falaises iconiques","Clientèle golf","Vila Vita Parc voisin","Saison 9 mois"], risques:"Zone naturelle protégée partielle", potentiel:"30 clés cliff resort — ADR >700€/nuit", shortlist:false, notes:"L'Algarve monte en gamme rapidement.", contacts:[], journal:[] },
-  { id:10, nom:"Lake Como Bellagio Hillside", ville:"Bellagio", pays:"IT", region:"Lac de Côme, Lombardie", surface:7200, prix:4600000, ensoleillement:"2400h/an", acces:"1h Milan Malpensa, accès bateau", zonage:"Zone lacustre hôtelière", statut:"Option posée", score:88, tags:["Voisins Clooney & Versace","Grand Hotel Tremezzo","Clientèle finance & mode","Lac iconique"], risques:"Saisonnalité 6 mois, ensoleillement hivernal limité", potentiel:"18 suites lacustres — ADR >1 200€/nuit", shortlist:true, notes:"Le lac de Côme est la destination N°1 des ultra-riches.", contacts:[], journal:[] },
-  { id:11, nom:"One&Only Portonovi Voisinage", ville:"Herceg Novi", pays:"ME", region:"Bouches de Kotor, Monténégro", surface:9500, prix:2200000, ensoleillement:"2650h/an", acces:"45 min aéroport Tivat, 2h Dubrovnik", zonage:"Zone resort développée", statut:"Disponible", score:82, tags:["One&Only voisin","Fjord adriatique","Marché en forte croissance","Zone franche"], risques:"Marché émergent, liquidité de sortie limitée", potentiel:"28 clés — second resort premium de la baie", shortlist:false, notes:"+30.9% prix immobilier en 2024.", contacts:[], journal:[] },
-  { id:12, nom:"Dubrovnik Old Town Heights", ville:"Dubrovnik", pays:"HR", region:"Dalmatie du Sud, Croatie", surface:6100, prix:3600000, ensoleillement:"2750h/an", acces:"20 min aéroport Dubrovnik", zonage:"Zone hôtelière – UNESCO buffer zone", statut:"Disponible", score:86, tags:["UNESCO","Clientèle internationale premium","Vue remparts","Croisières luxe"], risques:"Réglementation UNESCO stricte, tourisme de masse à gérer", potentiel:"20 clés boutique — vue remparts et Adriatique", shortlist:false, notes:"Dubrovnik top 10 villes Europe.", contacts:[], journal:[] },
+const INIT_DATA=[
+  {id:1,nom:"Domaine de la Vigie",ville:"Saint-Jean-Cap-Ferrat",pays:"FR",region:"Alpes-Maritimes, Côte d'Azur",lat:43.691,lng:7.333,surface:6800,prix:4800000,ensoleillement:"2900h/an",acces:"20 min aéroport Nice, hélipad possible",zonage:"Zone NH – hôtelière protégée",statut:"Négociation",score:94,tags:["Prestige mondial","Clientèle royale & CEOs","Vue Monaco","Voisinage Rothschild"],risques:"Réglementation stricte, rareté extrême",potentiel:"18 clés ultra-luxe — ADR >1 500€/nuit",shortlist:true,notes:"L'adresse la plus bankable de la Riviera.",contacts:[],journal:[]},
+  {id:2,nom:"Punta Mesco Hillside",ville:"Portofino",pays:"IT",region:"Ligurie, Gênes",lat:44.303,lng:9.209,surface:9200,prix:4200000,ensoleillement:"2700h/an",acces:"1h aéroport Gênes, accès yacht",zonage:"Zone parc naturel – dérogation resort",statut:"Disponible",score:92,tags:["Clientèle Belmond & Four Seasons","Village iconique","Accès mer privé"],risques:"Zone naturelle protégée — permis complexe",potentiel:"20 clés boutique — clientèle yacht internationale",shortlist:true,notes:"Portofino est la référence mondiale du discret et du cher.",contacts:[],journal:[]},
+  {id:3,nom:"Cap d'Antibes Sud",ville:"Antibes",pays:"FR",region:"Alpes-Maritimes, Côte d'Azur",lat:43.563,lng:7.119,surface:11000,prix:4500000,ensoleillement:"2880h/an",acces:"15 min aéroport Nice, marina privée",zonage:"Zone NH – hôtelière",statut:"Disponible",score:91,tags:["Eden Roc voisin","Clientèle billionaires","Plage privée","Festival de Cannes crowd"],risques:"Concurrence Hôtel du Cap, prix foncier extrême",potentiel:"25 clés ultra-luxe — voisinage Eden Roc",shortlist:true,notes:"Terrain à 400m de l'Hôtel du Cap-Eden-Roc.",contacts:[],journal:[]},
+  {id:4,nom:"Caldera View Estate",ville:"Oia",pays:"GR",region:"Santorin, Cyclades",lat:36.461,lng:25.376,surface:7500,prix:3200000,ensoleillement:"3100h/an",acces:"30 min aéroport Santorin",zonage:"Zone touristique – Cyclades",statut:"Disponible",score:90,tags:["Coucher de soleil #1 mondial","Clientèle honeymoon","Vues caldera","Destination iconique"],risques:"Accès île — saisonnalité forte mai-oct.",potentiel:"15 suites infinity — ADR >1 200€/nuit",shortlist:true,notes:"Santorin est la destination la plus photographiée au monde.",contacts:[],journal:[]},
+  {id:5,nom:"Costa Navarino Promontoire",ville:"Pylos",pays:"GR",region:"Péloponnèse, Messénie",lat:36.913,lng:21.694,surface:28000,prix:3800000,ensoleillement:"3000h/an",acces:"45 min aéroport Kalamata",zonage:"Zone touristique développée",statut:"Disponible",score:88,tags:["Mandarin Oriental voisin","4 golfs signature","Clientèle UHNWI","Plage immaculée"],risques:"Concurrence des resorts existants sur site",potentiel:"35 clés — entre Mandarin & W Hotels",shortlist:false,notes:"Costa Navarino est le Saint-Barths grec.",contacts:[],journal:[]},
+  {id:6,nom:"Punta Tragara Heights",ville:"Capri",pays:"IT",region:"Campanie, Naples",lat:40.549,lng:14.242,surface:5800,prix:4900000,ensoleillement:"2800h/an",acces:"Ferry 45min Naples, hélicoptère",zonage:"Zone hôtelière insulaire",statut:"Négociation",score:89,tags:["Île mythique","Jet-set international","Faraglioni view","Clientèle ultra-premium"],risques:"Accès insulaire, saisonnalité, permis strict",potentiel:"16 suites — ADR >1 800€/nuit haute saison",shortlist:true,notes:"Capri est hors-catégorie. Quisisana = 2 000€/nuit base.",contacts:[],journal:[]},
+  {id:7,nom:"Mykonos Aleomandra Cliff",ville:"Mykonos",pays:"GR",region:"Cyclades, Égée méridionale",lat:37.444,lng:25.328,surface:8200,prix:2900000,ensoleillement:"3000h/an",acces:"40 min aéroport Mykonos",zonage:"Zone touristique – Cyclades",statut:"Disponible",score:86,tags:["Clientèle yacht","Wellness & lifestyle","Vue île Delos","Tech billionaires"],risques:"Forte saisonnalité — 4 mois peak, hiver mort",potentiel:"22 clés — clientèle fashion & tech billionaires",shortlist:false,notes:"Mykonos capte une clientèle 30-50 ans très dépensière.",contacts:[],journal:[]},
+  {id:8,nom:"Marbella Golden Mile Est",ville:"Marbella",pays:"ES",region:"Costa del Sol, Andalousie",lat:36.509,lng:-4.882,surface:14500,prix:4100000,ensoleillement:"3200h/an",acces:"40 min aéroport Málaga",zonage:"Sol turístico – resort",statut:"Disponible",score:87,tags:["300 jours de soleil","Porto Banús voisin","Middle East & Gulf clientèle","Golf & polo"],risques:"Marché saturé en entrée de gamme",potentiel:"40 clés resort + spa — saison 10 mois",shortlist:false,notes:"Meilleure destination Europe 2024.",contacts:[],journal:[]},
+  {id:9,nom:"Algarve Ponta da Piedade",ville:"Lagos",pays:"PT",region:"Algarve, Faro",lat:37.082,lng:-8.669,surface:18000,prix:3500000,ensoleillement:"3100h/an",acces:"1h aéroport Faro, 2h Lisbonne",zonage:"Zone touristique côtière",statut:"Disponible",score:85,tags:["Falaises iconiques","Clientèle golf","Vila Vita Parc voisin","Saison 9 mois"],risques:"Zone naturelle protégée partielle",potentiel:"30 clés cliff resort — ADR >700€/nuit",shortlist:false,notes:"L'Algarve monte en gamme rapidement.",contacts:[],journal:[]},
+  {id:10,nom:"Lake Como Bellagio Hillside",ville:"Bellagio",pays:"IT",region:"Lac de Côme, Lombardie",lat:45.987,lng:9.258,surface:7200,prix:4600000,ensoleillement:"2400h/an",acces:"1h Milan Malpensa, accès bateau",zonage:"Zone lacustre hôtelière",statut:"Option posée",score:88,tags:["Voisins Clooney & Versace","Grand Hotel Tremezzo","Clientèle finance & mode","Lac iconique"],risques:"Saisonnalité 6 mois, ensoleillement hivernal limité",potentiel:"18 suites lacustres — ADR >1 200€/nuit",shortlist:true,notes:"Le lac de Côme est la destination N°1 des ultra-riches.",contacts:[],journal:[]},
+  {id:11,nom:"One&Only Portonovi Voisinage",ville:"Herceg Novi",pays:"ME",region:"Bouches de Kotor, Monténégro",lat:42.453,lng:18.537,surface:9500,prix:2200000,ensoleillement:"2650h/an",acces:"45 min aéroport Tivat, 2h Dubrovnik",zonage:"Zone resort développée",statut:"Disponible",score:82,tags:["One&Only voisin","Fjord adriatique","Marché en forte croissance","Zone franche"],risques:"Marché émergent, liquidité de sortie limitée",potentiel:"28 clés — second resort premium de la baie",shortlist:false,notes:"+30.9% prix immobilier en 2024.",contacts:[],journal:[]},
+  {id:12,nom:"Dubrovnik Old Town Heights",ville:"Dubrovnik",pays:"HR",region:"Dalmatie du Sud, Croatie",lat:42.641,lng:18.110,surface:6100,prix:3600000,ensoleillement:"2750h/an",acces:"20 min aéroport Dubrovnik",zonage:"Zone hôtelière – UNESCO buffer zone",statut:"Disponible",score:86,tags:["UNESCO","Clientèle internationale premium","Vue remparts","Croisières luxe"],risques:"Réglementation UNESCO stricte, tourisme de masse à gérer",potentiel:"20 clés boutique — vue remparts et Adriatique",shortlist:false,notes:"Dubrovnik top 10 villes Europe.",contacts:[],journal:[]},
 ];
 
-function loadData() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      // Migrate: ensure contacts & journal exist
-      return parsed.map(t => ({ contacts: [], journal: [], ...t }));
-    }
-  } catch(e) {}
+function loadData(){
+  try{const r=localStorage.getItem(STORAGE_KEY);if(r){const p=JSON.parse(r);return p.map(t=>({contacts:[],journal:[],lat:null,lng:null,...t}));}}catch(e){}
   return JSON.parse(JSON.stringify(INIT_DATA));
 }
-function saveData(d) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); } catch(e) {} }
+function saveData(d){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(d));}catch(e){}}
 
-let DB = loadData();
-let activeFilter = 'all';
-let activeDetailId = null;
-let activeTab = 'detail';
-let showAddContact = false;
+let DB=loadData();
+let activeFilter='all';
+let mapFilter='all';
+let activeDetailId=null;
+let activeTab='detail';
+let showAddContact=false;
+let leafletMap=null;
+let mapMarkers=[];
+let mapInitialized=false;
 
-const COUNTRIES = { FR:'France', ES:'Espagne', PT:'Portugal', IT:'Italie', GR:'Grèce', HR:'Croatie', ME:'Monténégro', OTHER:'Autre' };
-const STATUTS = ['Disponible','Négociation','Option posée','Vendu'];
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function scoreColor(s){return s>=88?'#2D6A2D':s>=80?'#92580A':'#8B2020';}
+function markerColor(t){
+  if(t.shortlist)return'#C8A84B';
+  if(t.statut==='Disponible')return'#2D6A2D';
+  if(t.statut==='Négociation'||t.statut==='Option posée')return'#92580A';
+  return'#8B2020';
+}
+function dotClass(s){return s==='Disponible'?'dot-green':(s==='Option posée'||s==='Négociation')?'dot-amber':'dot-red';}
+function fmtPrice(p){return p>=1000000?(p/1000000).toFixed(1).replace('.0','')+'M€':p>=1000?Math.round(p/1000)+'k€':p+'€';}
+function fmtSurface(s){return s>=10000?(s/10000).toFixed(1)+'ha':s.toLocaleString('fr')+' m²';}
+function fmtDate(iso){return new Date(iso).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'});}
+function statusKey(s){return s==='Disponible'?'disponible':s==='Négociation'?'negociation':s==='Option posée'?'option':'vendu';}
 
-function scoreColor(s) {
-  if (s >= 88) return '#2D6A2D';
-  if (s >= 80) return '#92580A';
-  return '#8B2020';
-}
-function dotClass(statut) {
-  if (statut === 'Disponible') return 'dot-green';
-  if (statut === 'Option posée' || statut === 'Négociation') return 'dot-amber';
-  return 'dot-red';
-}
-function fmtPrice(p) {
-  if (p >= 1000000) return (p/1000000).toFixed(1).replace('.0','') + 'M€';
-  if (p >= 1000) return Math.round(p/1000) + 'k€';
-  return p + '€';
-}
-function fmtSurface(s) {
-  if (s >= 10000) return (s/10000).toFixed(1) + 'ha';
-  return s.toLocaleString('fr') + ' m²';
-}
-function fmtDate(iso) {
-  const d = new Date(iso);
-  return d.toLocaleDateString('fr-FR', { day:'numeric', month:'long', year:'numeric' });
-}
-function statusKey(s) {
-  if (s === 'Disponible') return 'disponible';
-  if (s === 'Négociation') return 'negociation';
-  if (s === 'Option posée') return 'option';
-  return 'vendu';
+// ── Navigation ────────────────────────────────────────────────────────────────
+function showPage(page, btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  if(btn) btn.classList.add('active');
+  if(page==='map') initMap();
 }
 
-function setFilter(f, el) {
-  activeFilter = f;
-  document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+// ── Filters ───────────────────────────────────────────────────────────────────
+function setFilter(f,el,isMap){
+  if(isMap) mapFilter=f; else activeFilter=f;
+  document.querySelectorAll(isMap?'#map-pills .pill':'#pills .pill').forEach(p=>p.classList.remove('active'));
   el.classList.add('active');
-  render();
+  if(isMap) updateMapMarkers(); else render();
 }
-function getFiltered() {
-  const q = document.getElementById('search').value.toLowerCase();
-  const sort = document.getElementById('sort').value;
-  let data = DB.filter(t => {
-    const mf = activeFilter === 'all' ? true : activeFilter === 'shortlist' ? t.shortlist : activeFilter === 'disponible' ? t.statut === 'Disponible' : t.pays === activeFilter;
-    const ms = !q || [t.nom, t.ville, t.region, t.pays].join(' ').toLowerCase().includes(q);
-    return mf && ms;
+
+function getFiltered(filter){
+  const q=document.getElementById('search')?.value.toLowerCase()||'';
+  const sort=document.getElementById('sort')?.value||'score';
+  let data=DB.filter(t=>{
+    const mf=filter==='all'?true:filter==='shortlist'?t.shortlist:filter==='disponible'?t.statut==='Disponible':t.pays===filter;
+    const ms=!q||[t.nom,t.ville,t.region,t.pays].join(' ').toLowerCase().includes(q);
+    return mf&&ms;
   });
-  data.sort((a,b) => sort === 'prix' ? a.prix - b.prix : sort === 'surface' ? b.surface - a.surface : sort === 'nom' ? a.nom.localeCompare(b.nom) : b.score - a.score);
+  data.sort((a,b)=>sort==='prix'?a.prix-b.prix:sort==='surface'?b.surface-a.surface:sort==='nom'?a.nom.localeCompare(b.nom):b.score-a.score);
   return data;
 }
-function buildPills() {
-  const pays = [...new Set(DB.map(t => t.pays))];
-  const filters = [['all','Tous'], ...pays.map(p => [p, COUNTRIES[p]||p]), ['disponible','Disponible'], ['shortlist','★ Shortlist']];
-  document.getElementById('pills').innerHTML = filters.map(([val, label]) =>
-    `<button class="pill${val===activeFilter?' active':''}" onclick="setFilter('${val}',this)">${label}</button>`
+
+function buildPills(containerId,isMap){
+  const pays=[...new Set(DB.map(t=>t.pays))];
+  const filters=[['all','Tous'],...pays.map(p=>[p,COUNTRIES[p]||p]),['disponible','Disponible'],['shortlist','★ Shortlist']];
+  const cur=isMap?mapFilter:activeFilter;
+  document.getElementById(containerId).innerHTML=filters.map(([val,label])=>
+    `<button class="pill${val===cur?' active':''}" onclick="setFilter('${val}',this,${isMap})">${label}</button>`
   ).join('');
 }
-function renderStats(data) {
-  const avgScore = data.length ? Math.round(data.reduce((a,t)=>a+t.score,0)/data.length) : 0;
-  const avgPrix = data.length ? data.reduce((a,t)=>a+t.prix,0)/data.length : 0;
-  document.getElementById('stats').innerHTML = `
+
+// ── List page ─────────────────────────────────────────────────────────────────
+function renderStats(data){
+  const avg=data.length?Math.round(data.reduce((a,t)=>a+t.score,0)/data.length):0;
+  const avgP=data.length?data.reduce((a,t)=>a+t.prix,0)/data.length:0;
+  document.getElementById('stats').innerHTML=`
     <div class="stat-card"><div class="stat-label">Terrains</div><div class="stat-val">${data.length}</div><div class="stat-sub">dans la sélection</div></div>
     <div class="stat-card"><div class="stat-label">Shortlistés</div><div class="stat-val">${data.filter(t=>t.shortlist).length}</div><div class="stat-sub">terrains prioritaires</div></div>
-    <div class="stat-card"><div class="stat-label">Score moyen</div><div class="stat-val">${avgScore}<span style="font-size:16px;color:var(--muted)">/100</span></div><div class="stat-sub">opportunité</div></div>
-    <div class="stat-card"><div class="stat-label">Prix moyen</div><div class="stat-val" style="font-size:22px">${fmtPrice(Math.round(avgPrix))}</div><div class="stat-sub">acquisition</div></div>
+    <div class="stat-card"><div class="stat-label">Score moyen</div><div class="stat-val">${avg}<span style="font-size:16px;color:var(--muted)">/100</span></div><div class="stat-sub">opportunité</div></div>
+    <div class="stat-card"><div class="stat-label">Prix moyen</div><div class="stat-val" style="font-size:22px">${fmtPrice(Math.round(avgP))}</div><div class="stat-sub">acquisition</div></div>
   `;
 }
-function renderGrid(data) {
-  const grid = document.getElementById('grid');
-  if (!data.length) { grid.innerHTML = `<div class="empty"><div class="empty-title">Aucun terrain trouvé</div><p>Modifiez vos filtres ou ajoutez un nouveau terrain.</p></div>`; return; }
-  grid.innerHTML = data.map(t => `
+function renderGrid(data){
+  const grid=document.getElementById('grid');
+  if(!data.length){grid.innerHTML=`<div class="empty"><div class="empty-title">Aucun terrain trouvé</div><p>Modifiez vos filtres ou ajoutez un nouveau terrain.</p></div>`;return;}
+  grid.innerHTML=data.map(t=>`
     <div class="card${t.shortlist?' shortlisted':''}" onclick="openDetail(${t.id})">
       <div class="card-top">
         <div><div class="card-name">${t.nom}${t.shortlist?' ★':''}</div><div class="card-loc">${t.ville} · ${t.region}</div></div>
@@ -453,316 +404,260 @@ function renderGrid(data) {
         <div class="score-bar"><div class="score-fill" style="width:${t.score}%;background:${scoreColor(t.score)}"></div></div>
       </div>
       <div class="tags">${(t.tags||[]).map(tag=>`<span class="tag">${tag}</span>`).join('')}</div>
-      ${(t.contacts||[]).length || (t.journal||[]).length ? `<div style="margin-top:10px;display:flex;gap:8px">
-        ${(t.contacts||[]).length ? `<span class="tag">👤 ${t.contacts.length} contact${t.contacts.length>1?'s':''}</span>` : ''}
-        ${(t.journal||[]).length ? `<span class="tag">📝 ${t.journal.length} note${t.journal.length>1?'s':''}</span>` : ''}
-      </div>` : ''}
+      ${(t.contacts||[]).length||(t.journal||[]).length?`<div style="margin-top:10px;display:flex;gap:8px">
+        ${(t.contacts||[]).length?`<span class="tag">👤 ${t.contacts.length} contact${t.contacts.length>1?'s':''}</span>`:''}
+        ${(t.journal||[]).length?`<span class="tag">📝 ${t.journal.length} note${t.journal.length>1?'s':''}</span>`:''}
+      </div>`:''}
     </div>
   `).join('');
 }
-function render() { buildPills(); const data = getFiltered(); renderStats(data); renderGrid(data); }
+function render(){
+  buildPills('pills',false);
+  const data=getFiltered(activeFilter);
+  renderStats(data);
+  renderGrid(data);
+}
+
+// ── MAP ───────────────────────────────────────────────────────────────────────
+function initMap(){
+  if(mapInitialized)return;
+  mapInitialized=true;
+  leafletMap=L.map('map',{zoomControl:true}).setView([43,14],5);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    maxZoom:18
+  }).addTo(leafletMap);
+  buildPills('map-pills',true);
+  updateMapMarkers();
+}
+
+function updateMapMarkers(){
+  mapMarkers.forEach(m=>leafletMap.removeLayer(m));
+  mapMarkers=[];
+  buildPills('map-pills',true);
+  const data=DB.filter(t=>{
+    if(mapFilter==='all')return true;
+    if(mapFilter==='shortlist')return t.shortlist;
+    if(mapFilter==='disponible')return t.statut==='Disponible';
+    return t.pays===mapFilter;
+  }).filter(t=>t.lat&&t.lng);
+
+  data.forEach(t=>{
+    const color=markerColor(t);
+    const border=t.shortlist?'#0D1F3C':'white';
+    const icon=L.divIcon({
+      className:'',
+      html:`<div class="marker-pin" style="background:${color};border-color:${border};width:34px;height:34px;border-radius:50%;border:2.5px solid ${border};display:flex;align-items:center;justify-content:center;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;color:white;box-shadow:0 2px 10px rgba(0,0,0,.3);cursor:pointer;">${t.score}</div>`,
+      iconSize:[34,34],iconAnchor:[17,17],popupAnchor:[0,-18]
+    });
+    const marker=L.marker([t.lat,t.lng],{icon}).addTo(leafletMap);
+    const popup=L.popup({maxWidth:280,closeButton:false,className:''}).setContent(`
+      <div>
+        <div class="popup-header">
+          <div class="popup-name">${t.nom}${t.shortlist?' ★':''}</div>
+          <div class="popup-loc">${t.ville} · ${t.region}</div>
+          <div class="popup-status">
+            <div class="popup-dot" style="background:${color}"></div>
+            <span style="font-size:11px;color:rgba(255,255,255,.65)">${t.statut}</span>
+          </div>
+        </div>
+        <div class="popup-body">
+          <div class="popup-grid">
+            <div class="popup-item"><div class="popup-item-label">Prix</div><div class="popup-item-val">${fmtPrice(t.prix)}</div></div>
+            <div class="popup-item"><div class="popup-item-label">Surface</div><div class="popup-item-val">${fmtSurface(t.surface)}</div></div>
+            <div class="popup-item"><div class="popup-item-label">Soleil</div><div class="popup-item-val">${t.ensoleillement}</div></div>
+            <div class="popup-item"><div class="popup-item-label">Score</div><div class="popup-item-val" style="color:${scoreColor(t.score)}">${t.score}/100</div></div>
+          </div>
+          <div class="popup-score-bar"><div class="popup-score-fill" style="width:${t.score}%;background:${scoreColor(t.score)}"></div></div>
+          <div class="popup-tags">${(t.tags||[]).slice(0,3).map(tag=>`<span class="popup-tag">${tag}</span>`).join('')}</div>
+          <button class="popup-btn" onclick="openDetail(${t.id})">Ouvrir la fiche complète</button>
+        </div>
+      </div>
+    `);
+    marker.bindPopup(popup);
+    mapMarkers.push(marker);
+  });
+}
 
 // ── Detail modal ──────────────────────────────────────────────────────────────
-function openDetail(id, tab) {
-  activeDetailId = id;
-  activeTab = tab || 'detail';
-  showAddContact = false;
+function openDetail(id,tab){
+  activeDetailId=id;activeTab=tab||'detail';showAddContact=false;
   renderDetail();
   document.getElementById('detail-modal').classList.add('open');
+  leafletMap&&leafletMap.closePopup&&leafletMap.closePopup();
 }
-function renderDetail() {
-  const t = DB.find(x => x.id === activeDetailId);
-  if (!t) return;
-
-  const tabContent = {
-    detail: renderDetailTab(t),
-    contacts: renderContactsTab(t),
-    journal: renderJournalTab(t),
-  };
-
-  document.getElementById('detail-content').innerHTML = `
+function renderDetail(){
+  const t=DB.find(x=>x.id===activeDetailId);if(!t)return;
+  document.getElementById('detail-content').innerHTML=`
     <button class="modal-close" onclick="document.getElementById('detail-modal').classList.remove('open')">×</button>
     <div style="display:flex;justify-content:space-between;align-items:flex-start;padding-right:36px">
-      <div>
-        <div class="modal-title">${t.nom}${t.shortlist?' ★':''}</div>
-        <div class="modal-sub">${t.ville} · ${t.region}</div>
-      </div>
+      <div><div class="modal-title">${t.nom}${t.shortlist?' ★':''}</div><div class="modal-sub">${t.ville} · ${t.region}</div></div>
       <span class="country-badge badge-${t.pays}" style="margin-top:4px;flex-shrink:0">${COUNTRIES[t.pays]||t.pays}</span>
     </div>
-
     <div class="modal-tabs">
       <button class="modal-tab${activeTab==='detail'?' active':''}" onclick="switchTab('detail')">Fiche</button>
       <button class="modal-tab${activeTab==='contacts'?' active':''}" onclick="switchTab('contacts')">Contacts ${t.contacts&&t.contacts.length?'('+t.contacts.length+')':''}</button>
       <button class="modal-tab${activeTab==='journal'?' active':''}" onclick="switchTab('journal')">Journal ${t.journal&&t.journal.length?'('+t.journal.length+')':''}</button>
     </div>
-
-    <div id="tab-detail" class="tab-panel${activeTab==='detail'?' active':''}">${tabContent.detail}</div>
-    <div id="tab-contacts" class="tab-panel${activeTab==='contacts'?' active':''}">${tabContent.contacts}</div>
-    <div id="tab-journal" class="tab-panel${activeTab==='journal'?' active':''}">${tabContent.journal}</div>
-
+    <div id="tab-detail" class="tab-panel${activeTab==='detail'?' active':''}">${renderDetailTab(t)}</div>
+    <div id="tab-contacts" class="tab-panel${activeTab==='contacts'?' active':''}">${renderContactsTab(t)}</div>
+    <div id="tab-journal" class="tab-panel${activeTab==='journal'?' active':''}">${renderJournalTab(t)}</div>
     <div class="modal-actions">
-      <button class="btn-shortlist" onclick="toggleShortlist(${t.id})">${t.shortlist ? '★ Retirer de la shortlist' : '☆ Ajouter à la shortlist'}</button>
+      <button class="btn-shortlist" onclick="toggleShortlist(${t.id})">${t.shortlist?'★ Retirer de la shortlist':'☆ Ajouter à la shortlist'}</button>
       <button class="btn-delete" onclick="deleteTerrain(${t.id})">Supprimer</button>
     </div>
   `;
 }
-
-function renderDetailTab(t) {
-  return `
-    <div class="modal-section">Statut du dossier</div>
-    <div class="status-selector">
-      ${STATUTS.map(s => `<button class="status-btn${t.statut===s?' active-'+statusKey(s):''}" onclick="setStatut(${t.id},'${s}')">${s}</button>`).join('')}
-    </div>
-
-    <div class="modal-section">Caractéristiques</div>
-    <div class="modal-grid">
-      <div class="modal-item"><div class="modal-item-label">Prix d'acquisition</div><div class="modal-item-val">${fmtPrice(t.prix)}</div></div>
-      <div class="modal-item"><div class="modal-item-label">Surface</div><div class="modal-item-val">${fmtSurface(t.surface)}</div></div>
-      <div class="modal-item"><div class="modal-item-label">Ensoleillement</div><div class="modal-item-val">${t.ensoleillement}</div></div>
-      <div class="modal-item"><div class="modal-item-label">Accès</div><div class="modal-item-val">${t.acces}</div></div>
-      <div class="modal-item"><div class="modal-item-label">Zonage</div><div class="modal-item-val">${t.zonage}</div></div>
-      <div class="modal-item"><div class="modal-item-label">Potentiel</div><div class="modal-item-val">${t.potentiel}</div></div>
-    </div>
-
-    <div class="modal-section">Risques & opportunité</div>
-    <div class="modal-item"><div class="modal-item-label">Risques identifiés</div><div class="modal-item-val" style="font-size:13px;color:var(--muted);font-weight:400">${t.risques}</div></div>
-    <div class="score-wrap" style="margin-top:12px">
-      <div class="score-top"><span>Score d'opportunité</span><span class="score-num" style="color:${scoreColor(t.score)}">${t.score}/100</span></div>
-      <div class="score-bar"><div class="score-fill" style="width:${t.score}%;background:${scoreColor(t.score)}"></div></div>
-    </div>
-    <div class="tags" style="margin-top:10px">${(t.tags||[]).map(tag=>`<span class="tag">${tag}</span>`).join('')}</div>
-
-    <div class="modal-section">Mes notes sur ce terrain</div>
-    <textarea class="edit-field" id="notes-field" rows="4" placeholder="Vos observations, impressions, idées de concept…">${t.notes||''}</textarea>
-    <div style="display:flex;align-items:center;gap:12px">
-      <button class="save-inline" onclick="saveNotes(${t.id})">Enregistrer</button>
-      <span class="save-confirm" id="notes-confirm">✓ Sauvegardé</span>
-    </div>
-  `;
-}
-
-function renderContactsTab(t) {
-  const contacts = t.contacts || [];
-  let html = '';
-
-  if (contacts.length === 0) {
-    html += `<p style="color:var(--muted);font-size:13px;margin-bottom:16px">Aucun contact enregistré pour ce terrain.</p>`;
-  } else {
-    html += contacts.map((c, i) => `
-      <div class="contact-card">
-        <button class="contact-del" onclick="deleteContact(${t.id},${i})" title="Supprimer">×</button>
-        <div class="contact-name">${c.nom}</div>
-        <div class="contact-role">${c.role||''}</div>
-        <div class="contact-meta">
-          ${c.email ? `<a href="mailto:${c.email}">✉ ${c.email}</a>` : ''}
-          ${c.tel ? `<a href="tel:${c.tel}">📞 ${c.tel}</a>` : ''}
-          ${c.linkedin ? `<a href="${c.linkedin}" target="_blank">in LinkedIn</a>` : ''}
-        </div>
-        ${c.note ? `<div class="contact-note">${c.note}</div>` : ''}
+function renderDetailTab(t){return`
+  <div class="modal-section">Statut du dossier</div>
+  <div class="status-selector">${STATUTS.map(s=>`<button class="status-btn${t.statut===s?' active-'+statusKey(s):''}" onclick="setStatut(${t.id},'${s}')">${s}</button>`).join('')}</div>
+  <div class="modal-section">Caractéristiques</div>
+  <div class="modal-grid">
+    <div class="modal-item"><div class="modal-item-label">Prix d'acquisition</div><div class="modal-item-val">${fmtPrice(t.prix)}</div></div>
+    <div class="modal-item"><div class="modal-item-label">Surface</div><div class="modal-item-val">${fmtSurface(t.surface)}</div></div>
+    <div class="modal-item"><div class="modal-item-label">Ensoleillement</div><div class="modal-item-val">${t.ensoleillement}</div></div>
+    <div class="modal-item"><div class="modal-item-label">Accès</div><div class="modal-item-val">${t.acces}</div></div>
+    <div class="modal-item"><div class="modal-item-label">Zonage</div><div class="modal-item-val">${t.zonage}</div></div>
+    <div class="modal-item"><div class="modal-item-label">Potentiel</div><div class="modal-item-val">${t.potentiel}</div></div>
+  </div>
+  <div class="modal-section">Risques & opportunité</div>
+  <div class="modal-item"><div class="modal-item-label">Risques identifiés</div><div class="modal-item-val" style="font-size:13px;color:var(--muted);font-weight:400">${t.risques}</div></div>
+  <div class="score-wrap" style="margin-top:12px">
+    <div class="score-top"><span>Score d'opportunité</span><span class="score-num" style="color:${scoreColor(t.score)}">${t.score}/100</span></div>
+    <div class="score-bar"><div class="score-fill" style="width:${t.score}%;background:${scoreColor(t.score)}"></div></div>
+  </div>
+  <div class="tags" style="margin-top:10px">${(t.tags||[]).map(tag=>`<span class="tag">${tag}</span>`).join('')}</div>
+  <div class="modal-section">Mes notes sur ce terrain</div>
+  <textarea class="edit-field" id="notes-field" rows="4" placeholder="Vos observations, impressions, idées de concept…">${t.notes||''}</textarea>
+  <div style="display:flex;align-items:center;gap:12px">
+    <button class="save-inline" onclick="saveNotes(${t.id})">Enregistrer</button>
+    <span class="save-confirm" id="notes-confirm">✓ Sauvegardé</span>
+  </div>
+`;}
+function renderContactsTab(t){
+  const contacts=t.contacts||[];
+  let html='';
+  if(!contacts.length)html+=`<p style="color:var(--muted);font-size:13px;margin-bottom:16px">Aucun contact enregistré pour ce terrain.</p>`;
+  else html+=contacts.map((c,i)=>`
+    <div class="contact-card">
+      <button class="contact-del" onclick="deleteContact(${t.id},${i})">×</button>
+      <div class="contact-name">${c.nom}</div>
+      <div class="contact-role">${c.role||''}</div>
+      <div class="contact-meta">
+        ${c.email?`<a href="mailto:${c.email}">✉ ${c.email}</a>`:''}
+        ${c.tel?`<a href="tel:${c.tel}">📞 ${c.tel}</a>`:''}
+        ${c.linkedin?`<a href="${c.linkedin}" target="_blank">in LinkedIn</a>`:''}
       </div>
-    `).join('');
-  }
-
-  html += `<button class="btn-add-contact" onclick="toggleAddContact(${t.id})">+ Ajouter un contact</button>`;
-
-  if (showAddContact) {
-    html += `
-      <div class="add-contact-form" style="margin-top:10px">
-        <div class="form-row">
-          <div><label class="edit-label">Nom *</label><input class="edit-field" id="c-nom" placeholder="Jean Dupont" style="resize:none"></div>
-          <div><label class="edit-label">Rôle / Fonction</label><input class="edit-field" id="c-role" placeholder="Agent immobilier, Notaire…" style="resize:none"></div>
-        </div>
-        <div class="form-row" style="margin-top:8px">
-          <div><label class="edit-label">Email</label><input class="edit-field" id="c-email" type="email" placeholder="jean@exemple.com" style="resize:none"></div>
-          <div><label class="edit-label">Téléphone</label><input class="edit-field" id="c-tel" placeholder="+33 6 00 00 00 00" style="resize:none"></div>
-        </div>
-        <div style="margin-top:8px"><label class="edit-label">LinkedIn URL</label><input class="edit-field" id="c-linkedin" placeholder="https://linkedin.com/in/…" style="resize:none"></div>
-        <div style="margin-top:8px"><label class="edit-label">Note sur ce contact</label><textarea class="edit-field" id="c-note" rows="2" placeholder="Source, relation, niveau de confiance…"></textarea></div>
-        <div style="display:flex;gap:10px;margin-top:12px">
-          <button class="save-inline" onclick="saveContact(${t.id})">Ajouter le contact</button>
-          <button onclick="toggleAddContact(${t.id})" style="padding:8px 16px;border:1px solid var(--border);border-radius:8px;background:transparent;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--muted);cursor:pointer">Annuler</button>
-        </div>
+      ${c.note?`<div class="contact-note">${c.note}</div>`:''}
+    </div>
+  `).join('');
+  html+=`<button class="btn-add-contact" onclick="toggleAddContact(${t.id})">+ Ajouter un contact</button>`;
+  if(showAddContact)html+=`
+    <div class="add-contact-form" style="margin-top:10px">
+      <div class="form-row">
+        <div><label class="edit-label" style="margin-top:0">Nom *</label><input class="edit-field" id="c-nom" placeholder="Jean Dupont" style="resize:none"></div>
+        <div><label class="edit-label" style="margin-top:0">Rôle</label><input class="edit-field" id="c-role" placeholder="Agent, Notaire…" style="resize:none"></div>
       </div>
-    `;
-  }
+      <div class="form-row" style="margin-top:8px">
+        <div><label class="edit-label" style="margin-top:0">Email</label><input class="edit-field" id="c-email" type="email" placeholder="jean@exemple.com" style="resize:none"></div>
+        <div><label class="edit-label" style="margin-top:0">Téléphone</label><input class="edit-field" id="c-tel" placeholder="+33 6 00 00 00 00" style="resize:none"></div>
+      </div>
+      <div style="margin-top:8px"><label class="edit-label" style="margin-top:0">LinkedIn URL</label><input class="edit-field" id="c-linkedin" placeholder="https://linkedin.com/in/…" style="resize:none"></div>
+      <div style="margin-top:8px"><label class="edit-label" style="margin-top:0">Note</label><textarea class="edit-field" id="c-note" rows="2" placeholder="Source, niveau de confiance…"></textarea></div>
+      <div style="display:flex;gap:10px;margin-top:12px">
+        <button class="save-inline" onclick="saveContact(${t.id})">Ajouter</button>
+        <button onclick="toggleAddContact(${t.id})" style="padding:8px 16px;border:1px solid var(--border);border-radius:8px;background:transparent;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--muted);cursor:pointer">Annuler</button>
+      </div>
+    </div>`;
   return html;
 }
-
-function renderJournalTab(t) {
-  const journal = (t.journal || []).slice().reverse();
-  let html = '';
-
-  html += `
+function renderJournalTab(t){
+  const journal=(t.journal||[]).slice().reverse();
+  let html=`
     <div style="margin-bottom:16px">
       <label class="edit-label" style="margin-top:0">Nouvelle entrée</label>
-      <textarea class="edit-field" id="journal-field" rows="3" placeholder="Visite du terrain, appel avec l'agent, réflexion sur le concept, point investisseur…"></textarea>
+      <textarea class="edit-field" id="journal-field" rows="3" placeholder="Visite du terrain, appel agent, réflexion concept, point investisseur…"></textarea>
       <button class="save-inline" style="margin-top:8px" onclick="saveJournal(${t.id})">Ajouter au journal</button>
-    </div>
-  `;
-
-  if (journal.length === 0) {
-    html += `<p style="color:var(--muted);font-size:13px">Aucune entrée dans le journal. Commencez à documenter vos échanges et idées.</p>`;
-  } else {
-    html += journal.map((j, i) => `
-      <div class="journal-entry">
-        <button class="journal-del" onclick="deleteJournal(${t.id},${journal.length-1-i})" title="Supprimer">×</button>
-        <div class="journal-date">${fmtDate(j.date)}</div>
-        <div class="journal-text">${j.text.replace(/\n/g,'<br>')}</div>
-      </div>
-    `).join('');
-  }
+    </div>`;
+  if(!journal.length)html+=`<p style="color:var(--muted);font-size:13px">Aucune entrée dans le journal.</p>`;
+  else html+=journal.map((j,i)=>`
+    <div class="journal-entry">
+      <button class="journal-del" onclick="deleteJournal(${t.id},${journal.length-1-i})">×</button>
+      <div class="journal-date">${fmtDate(j.date)}</div>
+      <div class="journal-text">${j.text.replace(/\n/g,'<br>')}</div>
+    </div>`).join('');
   return html;
 }
+function switchTab(tab){activeTab=tab;renderDetail();}
 
-function switchTab(tab) {
-  activeTab = tab;
-  renderDetail();
+// ── Actions ───────────────────────────────────────────────────────────────────
+function setStatut(id,statut){
+  const t=DB.find(x=>x.id===id);if(!t)return;
+  t.statut=statut;saveData(DB);render();if(mapInitialized)updateMapMarkers();renderDetail();
 }
-
-// ── Actions ────────────────────────────────────────────────────────────────────
-function setStatut(id, statut) {
-  const t = DB.find(x => x.id === id);
-  if (!t) return;
-  t.statut = statut;
-  saveData(DB);
-  render();
-  renderDetail();
+function saveNotes(id){
+  const t=DB.find(x=>x.id===id);if(!t)return;
+  t.notes=document.getElementById('notes-field').value;saveData(DB);render();
+  const c=document.getElementById('notes-confirm');if(c){c.style.display='inline';setTimeout(()=>{c.style.display='none';},2000);}
 }
-
-function saveNotes(id) {
-  const t = DB.find(x => x.id === id);
-  if (!t) return;
-  t.notes = document.getElementById('notes-field').value;
-  saveData(DB);
-  render();
-  const c = document.getElementById('notes-confirm');
-  if (c) { c.style.display = 'inline'; setTimeout(() => { c.style.display = 'none'; }, 2000); }
+function toggleAddContact(id){showAddContact=!showAddContact;renderDetail();if(showAddContact)setTimeout(()=>{const el=document.getElementById('c-nom');if(el)el.focus();},50);}
+function saveContact(id){
+  const t=DB.find(x=>x.id===id);if(!t)return;
+  const nom=(document.getElementById('c-nom').value||'').trim();
+  if(!nom){alert('Le nom est obligatoire.');return;}
+  if(!t.contacts)t.contacts=[];
+  t.contacts.push({nom,role:(document.getElementById('c-role').value||'').trim(),email:(document.getElementById('c-email').value||'').trim(),tel:(document.getElementById('c-tel').value||'').trim(),linkedin:(document.getElementById('c-linkedin').value||'').trim(),note:(document.getElementById('c-note').value||'').trim(),date:new Date().toISOString()});
+  showAddContact=false;saveData(DB);render();renderDetail();
 }
-
-function toggleAddContact(id) {
-  showAddContact = !showAddContact;
-  renderDetail();
-  if (showAddContact) setTimeout(() => { const el = document.getElementById('c-nom'); if (el) el.focus(); }, 50);
+function deleteContact(id,idx){
+  const t=DB.find(x=>x.id===id);if(!t)return;
+  if(!confirm('Supprimer ce contact ?'))return;
+  t.contacts.splice(idx,1);saveData(DB);render();renderDetail();
 }
-
-function saveContact(id) {
-  const t = DB.find(x => x.id === id);
-  if (!t) return;
-  const nom = (document.getElementById('c-nom').value || '').trim();
-  if (!nom) { alert('Le nom du contact est obligatoire.'); return; }
-  if (!t.contacts) t.contacts = [];
-  t.contacts.push({
-    nom,
-    role: (document.getElementById('c-role').value || '').trim(),
-    email: (document.getElementById('c-email').value || '').trim(),
-    tel: (document.getElementById('c-tel').value || '').trim(),
-    linkedin: (document.getElementById('c-linkedin').value || '').trim(),
-    note: (document.getElementById('c-note').value || '').trim(),
-    date: new Date().toISOString(),
-  });
-  showAddContact = false;
-  saveData(DB);
-  render();
-  renderDetail();
+function saveJournal(id){
+  const t=DB.find(x=>x.id===id);if(!t)return;
+  const text=(document.getElementById('journal-field').value||'').trim();if(!text)return;
+  if(!t.journal)t.journal=[];
+  t.journal.push({text,date:new Date().toISOString()});
+  saveData(DB);render();renderDetail();
 }
-
-function deleteContact(id, idx) {
-  const t = DB.find(x => x.id === id);
-  if (!t) return;
-  if (!confirm('Supprimer ce contact ?')) return;
-  t.contacts.splice(idx, 1);
-  saveData(DB);
-  render();
-  renderDetail();
+function deleteJournal(id,idx){
+  const t=DB.find(x=>x.id===id);if(!t)return;
+  if(!confirm('Supprimer cette entrée ?'))return;
+  t.journal.splice(idx,1);saveData(DB);render();renderDetail();
 }
-
-function saveJournal(id) {
-  const t = DB.find(x => x.id === id);
-  if (!t) return;
-  const text = (document.getElementById('journal-field').value || '').trim();
-  if (!text) return;
-  if (!t.journal) t.journal = [];
-  t.journal.push({ text, date: new Date().toISOString() });
-  saveData(DB);
-  render();
-  renderDetail();
+function toggleShortlist(id){
+  const t=DB.find(x=>x.id===id);if(!t)return;
+  t.shortlist=!t.shortlist;saveData(DB);render();if(mapInitialized)updateMapMarkers();renderDetail();
 }
-
-function deleteJournal(id, idx) {
-  const t = DB.find(x => x.id === id);
-  if (!t) return;
-  if (!confirm('Supprimer cette entrée ?')) return;
-  t.journal.splice(idx, 1);
-  saveData(DB);
-  render();
-  renderDetail();
-}
-
-function toggleShortlist(id) {
-  const t = DB.find(x => x.id === id);
-  if (t) { t.shortlist = !t.shortlist; saveData(DB); render(); renderDetail(); }
-}
-function deleteTerrain(id) {
-  if (!confirm('Supprimer ce terrain définitivement ?')) return;
-  DB = DB.filter(x => x.id !== id);
-  saveData(DB);
+function deleteTerrain(id){
+  if(!confirm('Supprimer ce terrain définitivement ?'))return;
+  DB=DB.filter(x=>x.id!==id);saveData(DB);
   document.getElementById('detail-modal').classList.remove('open');
-  render();
+  render();if(mapInitialized)updateMapMarkers();
 }
-
-function closeDetailClick(e) {
-  if (e.target === document.getElementById('detail-modal'))
-    document.getElementById('detail-modal').classList.remove('open');
-}
-
-function openAdd() { document.getElementById('add-modal').classList.add('open'); }
-function closeAdd(e) {
-  if (e.target === document.getElementById('add-modal'))
-    document.getElementById('add-modal').classList.remove('open');
-}
-function addTerrain() {
-  const nom = document.getElementById('f-nom').value.trim();
-  const ville = document.getElementById('f-ville').value.trim();
-  if (!nom || !ville) { alert('Le nom et la ville sont obligatoires.'); return; }
-  const newId = DB.length ? Math.max(...DB.map(t=>t.id)) + 1 : 1;
-  const tags = document.getElementById('f-tags').value.split(',').map(s=>s.trim()).filter(Boolean);
-  DB.push({
-    id: newId, nom, ville,
-    pays: document.getElementById('f-pays').value,
-    region: document.getElementById('f-region').value.trim() || ville,
-    surface: parseInt(document.getElementById('f-surface').value) || 0,
-    prix: parseInt(document.getElementById('f-prix').value) || 0,
-    ensoleillement: document.getElementById('f-soleil').value.trim() || '—',
-    acces: document.getElementById('f-acces').value.trim() || '—',
-    zonage: document.getElementById('f-zonage').value.trim() || '—',
-    statut: document.getElementById('f-statut').value,
-    score: parseInt(document.getElementById('f-score').value) || 70,
-    tags,
-    risques: document.getElementById('f-risques').value.trim() || '—',
-    potentiel: document.getElementById('f-potentiel').value.trim() || '—',
-    shortlist: false, notes: '', contacts: [], journal: [],
-  });
+function closeDetailClick(e){if(e.target===document.getElementById('detail-modal'))document.getElementById('detail-modal').classList.remove('open');}
+function openAdd(){document.getElementById('add-modal').classList.add('open');}
+function closeAdd(e){if(e.target===document.getElementById('add-modal'))document.getElementById('add-modal').classList.remove('open');}
+function addTerrain(){
+  const nom=document.getElementById('f-nom').value.trim();
+  const ville=document.getElementById('f-ville').value.trim();
+  if(!nom||!ville){alert('Le nom et la ville sont obligatoires.');return;}
+  const newId=DB.length?Math.max(...DB.map(t=>t.id))+1:1;
+  const tags=document.getElementById('f-tags').value.split(',').map(s=>s.trim()).filter(Boolean);
+  DB.push({id:newId,nom,ville,pays:document.getElementById('f-pays').value,region:document.getElementById('f-region').value.trim()||ville,lat:null,lng:null,surface:parseInt(document.getElementById('f-surface').value)||0,prix:parseInt(document.getElementById('f-prix').value)||0,ensoleillement:document.getElementById('f-soleil').value.trim()||'—',acces:document.getElementById('f-acces').value.trim()||'—',zonage:document.getElementById('f-zonage').value.trim()||'—',statut:document.getElementById('f-statut').value,score:parseInt(document.getElementById('f-score').value)||70,tags,risques:document.getElementById('f-risques').value.trim()||'—',potentiel:document.getElementById('f-potentiel').value.trim()||'—',shortlist:false,notes:'',contacts:[],journal:[]});
   saveData(DB);
   document.getElementById('add-modal').classList.remove('open');
-  ['f-nom','f-ville','f-region','f-prix','f-surface','f-soleil','f-acces','f-zonage','f-potentiel','f-risques','f-tags','f-score'].forEach(id => { document.getElementById(id).value = ''; });
-  render();
+  ['f-nom','f-ville','f-region','f-prix','f-surface','f-soleil','f-acces','f-zonage','f-potentiel','f-risques','f-tags','f-score'].forEach(id=>{document.getElementById(id).value='';});
+  render();if(mapInitialized)updateMapMarkers();
 }
-
-function exportCSV() {
-  const data = getFiltered();
-  const headers = ['Nom','Ville','Pays','Région','Surface m²','Prix €','Ensoleillement','Accès','Zonage','Statut','Score','Potentiel','Risques','Shortlist','Tags','Notes','Nb contacts','Nb entrées journal'];
-  const rows = data.map(t => [
-    t.nom, t.ville, COUNTRIES[t.pays]||t.pays, t.region, t.surface, t.prix,
-    t.ensoleillement, t.acces, t.zonage, t.statut, t.score, t.potentiel, t.risques,
-    t.shortlist ? 'Oui' : 'Non', (t.tags||[]).join(' | '), t.notes||'',
-    (t.contacts||[]).length, (t.journal||[]).length
-  ].map(v => `"${String(v).replace(/"/g,'""')}"`).join(','));
-  const csv = [headers.join(','), ...rows].join('\n');
-  const blob = new Blob(['\uFEFF'+csv], { type: 'text/csv;charset=utf-8;' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `terrain_sourcing_${new Date().toISOString().slice(0,10)}.csv`;
-  a.click();
+function exportCSV(){
+  const data=getFiltered(activeFilter);
+  const headers=['Nom','Ville','Pays','Région','Surface m²','Prix €','Ensoleillement','Accès','Zonage','Statut','Score','Potentiel','Risques','Shortlist','Tags','Notes','Nb contacts','Nb journal'];
+  const rows=data.map(t=>[t.nom,t.ville,COUNTRIES[t.pays]||t.pays,t.region,t.surface,t.prix,t.ensoleillement,t.acces,t.zonage,t.statut,t.score,t.potentiel,t.risques,t.shortlist?'Oui':'Non',(t.tags||[]).join(' | '),t.notes||'',(t.contacts||[]).length,(t.journal||[]).length].map(v=>`"${String(v).replace(/"/g,'""')}"`).join(','));
+  const csv=[headers.join(','),...rows].join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`terrain_sourcing_${new Date().toISOString().slice(0,10)}.csv`;a.click();
 }
 
 render();
