@@ -8,23 +8,11 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 :root {
-  --navy: #0D1F3C;
-  --slate: #1E3A5F;
-  --gold: #C8A84B;
-  --gold-l: #E8D48A;
-  --cream: #F7F4EE;
-  --smoke: #EDEAE2;
-  --text: #1A1A2E;
-  --muted: #6B7280;
-  --white: #FFFFFF;
-  --green: #2D6A2D;
-  --amber: #92580A;
-  --red: #8B2020;
-  --green-bg: #EAF3DE;
-  --amber-bg: #FFF3DC;
-  --red-bg: #FCEAEA;
-  --border: rgba(13,31,60,0.10);
-  --shadow: 0 2px 20px rgba(13,31,60,0.08);
+  --navy: #0D1F3C; --slate: #1E3A5F; --gold: #C8A84B; --gold-l: #E8D48A;
+  --cream: #F7F4EE; --smoke: #EDEAE2; --text: #1A1A2E; --muted: #6B7280;
+  --white: #FFFFFF; --green: #2D6A2D; --amber: #92580A; --red: #8B2020;
+  --green-bg: #EAF3DE; --amber-bg: #FFF3DC; --red-bg: #FCEAEA;
+  --border: rgba(13,31,60,0.10); --shadow: 0 2px 20px rgba(13,31,60,0.08);
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--text); min-height: 100vh; }
@@ -38,6 +26,7 @@ header {
 .logo span { color: var(--gold); }
 .header-meta { font-size: 12px; color: rgba(255,255,255,0.45); letter-spacing: 0.06em; text-transform: uppercase; }
 .container { max-width: 1280px; margin: 0 auto; padding: 0 32px; }
+
 .controls {
   background: var(--white); border-bottom: 1px solid var(--border); padding: 16px 32px;
   display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
@@ -73,11 +62,18 @@ select:focus { border-color: var(--gold); }
   white-space: nowrap; transition: background 0.15s; margin-left: auto;
 }
 .btn-add:hover { background: var(--gold-l); }
+.export-btn {
+  padding: 9px 16px; border: 1px solid var(--border); border-radius: 8px; background: transparent;
+  font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--muted); cursor: pointer; transition: all 0.15s;
+}
+.export-btn:hover { border-color: var(--navy); color: var(--navy); }
+
 .stats-strip { padding: 20px 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
 .stat-card { background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 16px 20px; }
 .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
 .stat-val { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 500; color: var(--navy); line-height: 1; }
 .stat-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
 .terrain-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; padding-bottom: 48px; }
 .card {
   background: var(--white); border: 1px solid var(--border); border-radius: 16px;
@@ -115,26 +111,116 @@ select:focus { border-color: var(--gold); }
 .score-fill { height: 100%; border-radius: 2px; }
 .tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
 .tag { font-size: 11px; background: var(--cream); color: var(--muted); padding: 2px 8px; border-radius: 20px; }
+
+/* ── Modal ── */
 .modal-overlay {
-  display: none; position: fixed; inset: 0; background: rgba(13,31,60,0.5);
-  z-index: 200; align-items: center; justify-content: center; padding: 20px;
+  display: none; position: fixed; inset: 0; background: rgba(13,31,60,0.55);
+  z-index: 200; align-items: flex-start; justify-content: center; padding: 24px 16px;
+  overflow-y: auto;
 }
 .modal-overlay.open { display: flex; }
-.modal { background: var(--white); border-radius: 20px; width: 100%; max-width: 680px; max-height: 90vh; overflow-y: auto; padding: 32px; position: relative; }
+.modal {
+  background: var(--white); border-radius: 20px; width: 100%; max-width: 720px;
+  padding: 32px; position: relative; margin: auto;
+}
 .modal-close {
   position: absolute; top: 20px; right: 20px; background: var(--smoke); border: none;
   border-radius: 50%; width: 32px; height: 32px; font-size: 18px; cursor: pointer;
   color: var(--muted); display: flex; align-items: center; justify-content: center; transition: background 0.15s;
 }
-.modal-close:hover { background: var(--border); }
+.modal-close:hover { background: var(--smoke); color: var(--text); }
 .modal-title { font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 600; color: var(--navy); margin-bottom: 4px; }
-.modal-sub { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
-.modal-section { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gold); margin: 20px 0 10px; border-bottom: 1px solid var(--smoke); padding-bottom: 6px; }
+.modal-sub { font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+
+/* ── Tabs inside modal ── */
+.modal-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--smoke); margin: 16px 0 20px; }
+.modal-tab {
+  padding: 8px 18px; font-size: 13px; font-weight: 500; color: var(--muted);
+  cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px;
+  transition: all 0.15s; background: none; border-top: none; border-left: none; border-right: none;
+  font-family: 'DM Sans', sans-serif;
+}
+.modal-tab.active { color: var(--navy); border-bottom-color: var(--gold); }
+.modal-tab:hover { color: var(--text); }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ── Detail panel ── */
+.modal-section { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gold); margin: 18px 0 10px; border-bottom: 1px solid var(--smoke); padding-bottom: 6px; }
 .modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .modal-item { background: var(--cream); border-radius: 10px; padding: 12px 14px; }
 .modal-item-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
 .modal-item-val { font-size: 14px; font-weight: 500; color: var(--text); }
-.modal-actions { display: flex; gap: 10px; margin-top: 24px; }
+
+/* ── Status selector ── */
+.status-selector { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+.status-btn {
+  padding: 7px 16px; border-radius: 20px; font-size: 12px; font-weight: 500;
+  border: 1px solid var(--border); background: transparent; color: var(--muted);
+  cursor: pointer; transition: all 0.15s; font-family: 'DM Sans', sans-serif;
+}
+.status-btn:hover { border-color: var(--gold); color: var(--text); }
+.status-btn.active-disponible { background: var(--green-bg); color: var(--green); border-color: var(--green); }
+.status-btn.active-negociation { background: var(--amber-bg); color: var(--amber); border-color: var(--amber); }
+.status-btn.active-option { background: var(--amber-bg); color: var(--amber); border-color: var(--amber); }
+.status-btn.active-vendu { background: var(--red-bg); color: var(--red); border-color: var(--red); }
+
+/* ── Edit fields ── */
+.edit-field {
+  width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px;
+  font-family: 'DM Sans', sans-serif; font-size: 13px; background: var(--cream);
+  color: var(--text); outline: none; transition: border-color 0.2s; resize: vertical;
+}
+.edit-field:focus { border-color: var(--gold); background: var(--white); }
+.edit-label { font-size: 11px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 5px; margin-top: 14px; display: block; }
+.save-inline {
+  padding: 8px 18px; background: var(--navy); color: var(--white); border: none; border-radius: 8px;
+  font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer;
+  margin-top: 16px; transition: background 0.15s;
+}
+.save-inline:hover { background: var(--slate); }
+.save-confirm { font-size: 12px; color: var(--green); margin-top: 8px; display: none; }
+
+/* ── Contacts ── */
+.contact-card {
+  background: var(--cream); border-radius: 12px; padding: 14px 16px; margin-bottom: 10px;
+  position: relative;
+}
+.contact-name { font-size: 14px; font-weight: 500; color: var(--navy); }
+.contact-role { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.contact-meta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+.contact-meta a { font-size: 12px; color: var(--slate); text-decoration: none; }
+.contact-meta a:hover { color: var(--gold); }
+.contact-note { font-size: 12px; color: var(--muted); margin-top: 8px; font-style: italic; }
+.contact-del {
+  position: absolute; top: 10px; right: 12px; background: none; border: none;
+  font-size: 16px; color: var(--muted); cursor: pointer; padding: 2px 6px; border-radius: 4px;
+}
+.contact-del:hover { color: var(--red); background: var(--red-bg); }
+.add-contact-form { background: var(--smoke); border-radius: 12px; padding: 16px; margin-top: 4px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.btn-add-contact {
+  padding: 8px 16px; border: 1px dashed var(--border); border-radius: 8px; background: transparent;
+  font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--muted); cursor: pointer;
+  width: 100%; margin-top: 4px; transition: all 0.15s;
+}
+.btn-add-contact:hover { border-color: var(--gold); color: var(--text); }
+
+/* ── Journal / Notes ── */
+.journal-entry {
+  padding: 12px 14px; border-left: 2px solid var(--gold); background: var(--cream);
+  border-radius: 0 10px 10px 0; margin-bottom: 10px; position: relative;
+}
+.journal-date { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+.journal-text { font-size: 13px; color: var(--text); line-height: 1.5; }
+.journal-del {
+  position: absolute; top: 8px; right: 10px; background: none; border: none;
+  font-size: 14px; color: var(--muted); cursor: pointer; padding: 2px 5px; border-radius: 4px;
+}
+.journal-del:hover { color: var(--red); background: var(--red-bg); }
+
+/* ── Modal actions ── */
+.modal-actions { display: flex; gap: 10px; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--smoke); }
 .btn-shortlist, .btn-delete {
   padding: 10px 18px; border-radius: 8px; font-family: 'DM Sans', sans-serif;
   font-size: 13px; font-weight: 500; cursor: pointer; border: 1px solid var(--border);
@@ -143,6 +229,8 @@ select:focus { border-color: var(--gold); }
 .btn-shortlist:hover { background: var(--navy); color: var(--white); border-color: var(--navy); }
 .btn-delete { margin-left: auto; color: var(--red); border-color: rgba(139,32,32,0.2); }
 .btn-delete:hover { background: var(--red-bg); border-color: var(--red); }
+
+/* ── Add terrain form ── */
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .form-group { display: flex; flex-direction: column; gap: 5px; }
 .form-group.full { grid-column: 1 / -1; }
@@ -161,11 +249,6 @@ select:focus { border-color: var(--gold); }
 .btn-submit:hover { background: var(--slate); }
 .empty { text-align: center; padding: 80px 20px; color: var(--muted); grid-column: 1/-1; }
 .empty-title { font-family: 'Cormorant Garamond', serif; font-size: 22px; color: var(--navy); margin-bottom: 8px; }
-.export-btn {
-  padding: 9px 16px; border: 1px solid var(--border); border-radius: 8px; background: transparent;
-  font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--muted); cursor: pointer; transition: all 0.15s;
-}
-.export-btn:hover { border-color: var(--navy); color: var(--navy); }
 </style>
 </head>
 <body>
@@ -200,16 +283,18 @@ select:focus { border-color: var(--gold); }
   <div class="terrain-grid" id="grid"></div>
 </div>
 
-<div class="modal-overlay" id="detail-modal" onclick="closeDetail(event)">
+<!-- Detail modal -->
+<div class="modal-overlay" id="detail-modal" onclick="closeDetailClick(event)">
   <div class="modal" id="detail-content"></div>
 </div>
 
+<!-- Add modal -->
 <div class="modal-overlay" id="add-modal" onclick="closeAdd(event)">
   <div class="modal">
     <button class="modal-close" onclick="document.getElementById('add-modal').classList.remove('open')">×</button>
     <div class="modal-title">Ajouter un terrain</div>
     <div class="modal-sub">Remplissez les informations du nouveau terrain</div>
-    <div class="form-grid">
+    <div class="form-grid" style="margin-top:16px">
       <div class="form-group full"><div class="form-label">Nom du terrain *</div><input class="form-input" id="f-nom" placeholder="Ex: Punta San Giorgio"></div>
       <div class="form-group"><div class="form-label">Ville *</div><input class="form-input" id="f-ville" placeholder="Ex: Portofino"></div>
       <div class="form-group"><div class="form-label">Région</div><input class="form-input" id="f-region" placeholder="Ex: Ligurie, Italie"></div>
@@ -236,40 +321,50 @@ select:focus { border-color: var(--gold); }
       <div class="form-group"><div class="form-label">Potentiel hôtelier</div><input class="form-input" id="f-potentiel" placeholder="20 clés boutique 5★"></div>
       <div class="form-group full"><div class="form-label">Risques identifiés</div><input class="form-input" id="f-risques" placeholder="Zone protégée, permis complexe…"></div>
       <div class="form-group full"><div class="form-label">Tags (séparés par virgules)</div><input class="form-input" id="f-tags" placeholder="Vue mer, Clientèle yacht, Prestige"></div>
-      <div class="form-group full"><div class="form-label">Notes libres</div><input class="form-input" id="f-notes" placeholder="Observations, contacts, source…"></div>
     </div>
     <button class="btn-submit" onclick="addTerrain()">Enregistrer le terrain</button>
   </div>
 </div>
 
 <script>
-const STORAGE_KEY = 'resort_sourcing_v2';
+const STORAGE_KEY = 'resort_sourcing_v3';
 
 const INIT_DATA = [
-  { id:1, nom:"Domaine de la Vigie", ville:"Saint-Jean-Cap-Ferrat", pays:"FR", region:"Alpes-Maritimes, Côte d'Azur", surface:6800, prix:4800000, ensoleillement:"2900h/an", acces:"20 min aéroport Nice, hélipad possible", zonage:"Zone NH – hôtelière protégée", statut:"Négociation", score:94, tags:["Prestige mondial","Clientèle royale & CEOs","Vue Monaco","Voisinage Rothschild"], risques:"Réglementation stricte, prix élevés, rareté extrême", potentiel:"18 clés ultra-luxe — ADR >1 500€/nuit", shortlist:true, notes:"L'adresse la plus bankable de la Riviera. Voisins : Villa Ephrussi, Grand-Hôtel du Cap-Ferrat." },
-  { id:2, nom:"Punta Mesco Hillside", ville:"Portofino", pays:"IT", region:"Ligurie, Gênes", surface:9200, prix:4200000, ensoleillement:"2700h/an", acces:"1h aéroport Gênes, accès yacht", zonage:"Zone parc naturel – dérogation resort", statut:"Disponible", score:92, tags:["Clientèle Belmond & Four Seasons","Village iconique","Accès mer privé"], risques:"Zone naturelle protégée — permis complexe", potentiel:"20 clés boutique — clientèle yacht internationale", shortlist:true, notes:"Portofino est la référence mondiale du discret et du cher. Belmond Hotel Splendido = référence ADR." },
-  { id:3, nom:"Cap d'Antibes Sud", ville:"Antibes", pays:"FR", region:"Alpes-Maritimes, Côte d'Azur", surface:11000, prix:4500000, ensoleillement:"2880h/an", acces:"15 min aéroport Nice, marina privée", zonage:"Zone NH – hôtelière", statut:"Disponible", score:91, tags:["Eden Roc voisin","Clientèle billionaires","Plage privée","Festival de Cannes crowd"], risques:"Concurrence Hôtel du Cap, prix foncier extrême", potentiel:"25 clés ultra-luxe — voisinage Eden Roc", shortlist:true, notes:"Terrain à 400m de l'Hôtel du Cap-Eden-Roc. ADR reference : 2 000–5 000€/nuit." },
-  { id:4, nom:"Caldera View Estate", ville:"Oia", pays:"GR", region:"Santorin, Cyclades", surface:7500, prix:3200000, ensoleillement:"3100h/an", acces:"30 min aéroport Santorin", zonage:"Zone touristique – Cyclades", statut:"Disponible", score:90, tags:["Coucher de soleil #1 mondial","Clientèle honeymoon","Vues caldera","Destination iconique"], risques:"Accès île — saisonnalité forte mai-oct.", potentiel:"15 suites infinity — ADR >1 200€/nuit", shortlist:true, notes:"Santorin est la destination la plus photographiée au monde. Grace Hotel = référence marché." },
-  { id:5, nom:"Costa Navarino Promontoire", ville:"Pylos", pays:"GR", region:"Péloponnèse, Messénie", surface:28000, prix:3800000, ensoleillement:"3000h/an", acces:"45 min aéroport Kalamata", zonage:"Zone touristique développée", statut:"Disponible", score:88, tags:["Mandarin Oriental voisin","4 golfs signature","Clientèle UHNWI","Plage immaculée"], risques:"Concurrence des resorts existants sur site", potentiel:"35 clés — entre Mandarin & W Hotels", shortlist:false, notes:"Costa Navarino est le Saint-Barths grec. Clientèle Middle East, US et shipping." },
-  { id:6, nom:"Punta Tragara Heights", ville:"Capri", pays:"IT", region:"Campanie, Naples", surface:5800, prix:4900000, ensoleillement:"2800h/an", acces:"Ferry 45min Naples, hélicoptère", zonage:"Zone hôtelière insulaire", statut:"Négociation", score:89, tags:["Île mythique","Jet-set international","Faraglioni view","Clientèle ultra-premium"], risques:"Accès insulaire, saisonnalité, permis strict", potentiel:"16 suites — ADR >1 800€/nuit haute saison", shortlist:true, notes:"Capri est hors-catégorie. Quisisana = 2 000€/nuit base. Clientèle mode, finance, royautés." },
-  { id:7, nom:"Mykonos Aleomandra Cliff", ville:"Mykonos", pays:"GR", region:"Cyclades, Égée méridionale", surface:8200, prix:2900000, ensoleillement:"3000h/an", acces:"40 min aéroport Mykonos", zonage:"Zone touristique – Cyclades", statut:"Disponible", score:86, tags:["Clientèle yacht","Wellness & lifestyle","Vue île Delos","Tech billionaires"], risques:"Forte saisonnalité — 4 mois peak, hiver mort", potentiel:"22 clés — clientèle fashion & tech billionaires", shortlist:false, notes:"Mykonos capte une clientèle 30-50 ans très dépensière. Katikies = référence." },
-  { id:8, nom:"Marbella Golden Mile Est", ville:"Marbella", pays:"ES", region:"Costa del Sol, Andalousie", surface:14500, prix:4100000, ensoleillement:"3200h/an", acces:"40 min aéroport Málaga", zonage:"Sol turístico – resort", statut:"Disponible", score:87, tags:["300 jours de soleil","Porto Banús voisin","Middle East & Gulf clientèle","Golf & polo"], risques:"Marché saturé en entrée de gamme — différenciation indispensable", potentiel:"40 clés resort + spa — saison 10 mois", shortlist:false, notes:"Meilleure destination Europe 2024 (200 000 votes). Marbella Club = référence ADR 1 500€." },
-  { id:9, nom:"Algarve Ponta da Piedade", ville:"Lagos", pays:"PT", region:"Algarve, Faro", surface:18000, prix:3500000, ensoleillement:"3100h/an", acces:"1h aéroport Faro, 2h Lisbonne", zonage:"Zone touristique côtière", statut:"Disponible", score:85, tags:["Falaises iconiques","Clientèle golf","Vila Vita Parc voisin","Saison 9 mois"], risques:"Zone naturelle protégée partielle", potentiel:"30 clés cliff resort — ADR >700€/nuit", shortlist:false, notes:"L'Algarve monte en gamme rapidement. Vila Vita Parc (2 étoiles Michelin) = référence locale." },
-  { id:10, nom:"Lake Como Bellagio Hillside", ville:"Bellagio", pays:"IT", region:"Lac de Côme, Lombardie", surface:7200, prix:4600000, ensoleillement:"2400h/an", acces:"1h Milan Malpensa, accès bateau", zonage:"Zone lacustre hôtelière", statut:"Option posée", score:88, tags:["Voisins: Clooney & Versace","Grand Hotel Tremezzo","Clientèle finance & mode","Lac iconique"], risques:"Saisonnalité 6 mois, ensoleillement hivernal limité", potentiel:"18 suites lacustres — ADR >1 200€/nuit", shortlist:true, notes:"Le lac de Côme est la destination N°1 des ultra-riches italiens et internationaux. Villa d'Este = référence." },
-  { id:11, nom:"One&Only Portonovi Voisinage", ville:"Herceg Novi", pays:"ME", region:"Bouches de Kotor, Monténégro", surface:9500, prix:2200000, ensoleillement:"2650h/an", acces:"45 min aéroport Tivat, 2h Dubrovnik", zonage:"Zone resort développée", statut:"Disponible", score:82, tags:["One&Only voisin","Fjord adriatique","Marché en forte croissance","Zone franche"], risques:"Marché émergent, liquidité de sortie limitée", potentiel:"28 clés — second resort premium de la baie", shortlist:false, notes:"One&Only Portonovi est sur site. Effet d'adresse garanti. +30.9% prix immobilier en 2024." },
-  { id:12, nom:"Dubrovnik Old Town Heights", ville:"Dubrovnik", pays:"HR", region:"Dalmatie du Sud, Croatie", surface:6100, prix:3600000, ensoleillement:"2750h/an", acces:"20 min aéroport Dubrovnik", zonage:"Zone hôtelière – UNESCO buffer zone", statut:"Disponible", score:86, tags:["UNESCO","Clientèle internationale premium","Vue remparts","Croisières luxe"], risques:"Réglementation UNESCO stricte, tourisme de masse à gérer", potentiel:"20 clés boutique — vue remparts et Adriatique", shortlist:false, notes:"Dubrovnik top 10 villes Europe. Clientèle croisières ultra-luxe (Regent, Silversea) en escale." },
+  { id:1, nom:"Domaine de la Vigie", ville:"Saint-Jean-Cap-Ferrat", pays:"FR", region:"Alpes-Maritimes, Côte d'Azur", surface:6800, prix:4800000, ensoleillement:"2900h/an", acces:"20 min aéroport Nice, hélipad possible", zonage:"Zone NH – hôtelière protégée", statut:"Négociation", score:94, tags:["Prestige mondial","Clientèle royale & CEOs","Vue Monaco","Voisinage Rothschild"], risques:"Réglementation stricte, prix élevés, rareté extrême", potentiel:"18 clés ultra-luxe — ADR >1 500€/nuit", shortlist:true, notes:"L'adresse la plus bankable de la Riviera.", contacts:[], journal:[] },
+  { id:2, nom:"Punta Mesco Hillside", ville:"Portofino", pays:"IT", region:"Ligurie, Gênes", surface:9200, prix:4200000, ensoleillement:"2700h/an", acces:"1h aéroport Gênes, accès yacht", zonage:"Zone parc naturel – dérogation resort", statut:"Disponible", score:92, tags:["Clientèle Belmond & Four Seasons","Village iconique","Accès mer privé"], risques:"Zone naturelle protégée — permis complexe", potentiel:"20 clés boutique — clientèle yacht internationale", shortlist:true, notes:"Portofino est la référence mondiale du discret et du cher.", contacts:[], journal:[] },
+  { id:3, nom:"Cap d'Antibes Sud", ville:"Antibes", pays:"FR", region:"Alpes-Maritimes, Côte d'Azur", surface:11000, prix:4500000, ensoleillement:"2880h/an", acces:"15 min aéroport Nice, marina privée", zonage:"Zone NH – hôtelière", statut:"Disponible", score:91, tags:["Eden Roc voisin","Clientèle billionaires","Plage privée","Festival de Cannes crowd"], risques:"Concurrence Hôtel du Cap, prix foncier extrême", potentiel:"25 clés ultra-luxe — voisinage Eden Roc", shortlist:true, notes:"Terrain à 400m de l'Hôtel du Cap-Eden-Roc.", contacts:[], journal:[] },
+  { id:4, nom:"Caldera View Estate", ville:"Oia", pays:"GR", region:"Santorin, Cyclades", surface:7500, prix:3200000, ensoleillement:"3100h/an", acces:"30 min aéroport Santorin", zonage:"Zone touristique – Cyclades", statut:"Disponible", score:90, tags:["Coucher de soleil #1 mondial","Clientèle honeymoon","Vues caldera","Destination iconique"], risques:"Accès île — saisonnalité forte mai-oct.", potentiel:"15 suites infinity — ADR >1 200€/nuit", shortlist:true, notes:"Santorin est la destination la plus photographiée au monde.", contacts:[], journal:[] },
+  { id:5, nom:"Costa Navarino Promontoire", ville:"Pylos", pays:"GR", region:"Péloponnèse, Messénie", surface:28000, prix:3800000, ensoleillement:"3000h/an", acces:"45 min aéroport Kalamata", zonage:"Zone touristique développée", statut:"Disponible", score:88, tags:["Mandarin Oriental voisin","4 golfs signature","Clientèle UHNWI","Plage immaculée"], risques:"Concurrence des resorts existants sur site", potentiel:"35 clés — entre Mandarin & W Hotels", shortlist:false, notes:"Costa Navarino est le Saint-Barths grec.", contacts:[], journal:[] },
+  { id:6, nom:"Punta Tragara Heights", ville:"Capri", pays:"IT", region:"Campanie, Naples", surface:5800, prix:4900000, ensoleillement:"2800h/an", acces:"Ferry 45min Naples, hélicoptère", zonage:"Zone hôtelière insulaire", statut:"Négociation", score:89, tags:["Île mythique","Jet-set international","Faraglioni view","Clientèle ultra-premium"], risques:"Accès insulaire, saisonnalité, permis strict", potentiel:"16 suites — ADR >1 800€/nuit haute saison", shortlist:true, notes:"Capri est hors-catégorie. Quisisana = 2 000€/nuit base.", contacts:[], journal:[] },
+  { id:7, nom:"Mykonos Aleomandra Cliff", ville:"Mykonos", pays:"GR", region:"Cyclades, Égée méridionale", surface:8200, prix:2900000, ensoleillement:"3000h/an", acces:"40 min aéroport Mykonos", zonage:"Zone touristique – Cyclades", statut:"Disponible", score:86, tags:["Clientèle yacht","Wellness & lifestyle","Vue île Delos","Tech billionaires"], risques:"Forte saisonnalité — 4 mois peak, hiver mort", potentiel:"22 clés — clientèle fashion & tech billionaires", shortlist:false, notes:"Mykonos capte une clientèle 30-50 ans très dépensière.", contacts:[], journal:[] },
+  { id:8, nom:"Marbella Golden Mile Est", ville:"Marbella", pays:"ES", region:"Costa del Sol, Andalousie", surface:14500, prix:4100000, ensoleillement:"3200h/an", acces:"40 min aéroport Málaga", zonage:"Sol turístico – resort", statut:"Disponible", score:87, tags:["300 jours de soleil","Porto Banús voisin","Middle East & Gulf clientèle","Golf & polo"], risques:"Marché saturé en entrée de gamme — différenciation indispensable", potentiel:"40 clés resort + spa — saison 10 mois", shortlist:false, notes:"Meilleure destination Europe 2024.", contacts:[], journal:[] },
+  { id:9, nom:"Algarve Ponta da Piedade", ville:"Lagos", pays:"PT", region:"Algarve, Faro", surface:18000, prix:3500000, ensoleillement:"3100h/an", acces:"1h aéroport Faro, 2h Lisbonne", zonage:"Zone touristique côtière", statut:"Disponible", score:85, tags:["Falaises iconiques","Clientèle golf","Vila Vita Parc voisin","Saison 9 mois"], risques:"Zone naturelle protégée partielle", potentiel:"30 clés cliff resort — ADR >700€/nuit", shortlist:false, notes:"L'Algarve monte en gamme rapidement.", contacts:[], journal:[] },
+  { id:10, nom:"Lake Como Bellagio Hillside", ville:"Bellagio", pays:"IT", region:"Lac de Côme, Lombardie", surface:7200, prix:4600000, ensoleillement:"2400h/an", acces:"1h Milan Malpensa, accès bateau", zonage:"Zone lacustre hôtelière", statut:"Option posée", score:88, tags:["Voisins Clooney & Versace","Grand Hotel Tremezzo","Clientèle finance & mode","Lac iconique"], risques:"Saisonnalité 6 mois, ensoleillement hivernal limité", potentiel:"18 suites lacustres — ADR >1 200€/nuit", shortlist:true, notes:"Le lac de Côme est la destination N°1 des ultra-riches.", contacts:[], journal:[] },
+  { id:11, nom:"One&Only Portonovi Voisinage", ville:"Herceg Novi", pays:"ME", region:"Bouches de Kotor, Monténégro", surface:9500, prix:2200000, ensoleillement:"2650h/an", acces:"45 min aéroport Tivat, 2h Dubrovnik", zonage:"Zone resort développée", statut:"Disponible", score:82, tags:["One&Only voisin","Fjord adriatique","Marché en forte croissance","Zone franche"], risques:"Marché émergent, liquidité de sortie limitée", potentiel:"28 clés — second resort premium de la baie", shortlist:false, notes:"+30.9% prix immobilier en 2024.", contacts:[], journal:[] },
+  { id:12, nom:"Dubrovnik Old Town Heights", ville:"Dubrovnik", pays:"HR", region:"Dalmatie du Sud, Croatie", surface:6100, prix:3600000, ensoleillement:"2750h/an", acces:"20 min aéroport Dubrovnik", zonage:"Zone hôtelière – UNESCO buffer zone", statut:"Disponible", score:86, tags:["UNESCO","Clientèle internationale premium","Vue remparts","Croisières luxe"], risques:"Réglementation UNESCO stricte, tourisme de masse à gérer", potentiel:"20 clés boutique — vue remparts et Adriatique", shortlist:false, notes:"Dubrovnik top 10 villes Europe.", contacts:[], journal:[] },
 ];
 
 function loadData() {
-  try { const raw = localStorage.getItem(STORAGE_KEY); if (raw) return JSON.parse(raw); } catch(e) {}
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      // Migrate: ensure contacts & journal exist
+      return parsed.map(t => ({ contacts: [], journal: [], ...t }));
+    }
+  } catch(e) {}
   return JSON.parse(JSON.stringify(INIT_DATA));
 }
 function saveData(d) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); } catch(e) {} }
 
 let DB = loadData();
 let activeFilter = 'all';
+let activeDetailId = null;
+let activeTab = 'detail';
+let showAddContact = false;
 
 const COUNTRIES = { FR:'France', ES:'Espagne', PT:'Portugal', IT:'Italie', GR:'Grèce', HR:'Croatie', ME:'Monténégro', OTHER:'Autre' };
+const STATUTS = ['Disponible','Négociation','Option posée','Vendu'];
 
 function scoreColor(s) {
   if (s >= 88) return '#2D6A2D';
@@ -290,6 +385,17 @@ function fmtSurface(s) {
   if (s >= 10000) return (s/10000).toFixed(1) + 'ha';
   return s.toLocaleString('fr') + ' m²';
 }
+function fmtDate(iso) {
+  const d = new Date(iso);
+  return d.toLocaleDateString('fr-FR', { day:'numeric', month:'long', year:'numeric' });
+}
+function statusKey(s) {
+  if (s === 'Disponible') return 'disponible';
+  if (s === 'Négociation') return 'negociation';
+  if (s === 'Option posée') return 'option';
+  return 'vendu';
+}
+
 function setFilter(f, el) {
   activeFilter = f;
   document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
@@ -347,21 +453,67 @@ function renderGrid(data) {
         <div class="score-bar"><div class="score-fill" style="width:${t.score}%;background:${scoreColor(t.score)}"></div></div>
       </div>
       <div class="tags">${(t.tags||[]).map(tag=>`<span class="tag">${tag}</span>`).join('')}</div>
+      ${(t.contacts||[]).length || (t.journal||[]).length ? `<div style="margin-top:10px;display:flex;gap:8px">
+        ${(t.contacts||[]).length ? `<span class="tag">👤 ${t.contacts.length} contact${t.contacts.length>1?'s':''}</span>` : ''}
+        ${(t.journal||[]).length ? `<span class="tag">📝 ${t.journal.length} note${t.journal.length>1?'s':''}</span>` : ''}
+      </div>` : ''}
     </div>
   `).join('');
 }
 function render() { buildPills(); const data = getFiltered(); renderStats(data); renderGrid(data); }
 
-function openDetail(id) {
-  const t = DB.find(x => x.id === id);
+// ── Detail modal ──────────────────────────────────────────────────────────────
+function openDetail(id, tab) {
+  activeDetailId = id;
+  activeTab = tab || 'detail';
+  showAddContact = false;
+  renderDetail();
+  document.getElementById('detail-modal').classList.add('open');
+}
+function renderDetail() {
+  const t = DB.find(x => x.id === activeDetailId);
   if (!t) return;
+
+  const tabContent = {
+    detail: renderDetailTab(t),
+    contacts: renderContactsTab(t),
+    journal: renderJournalTab(t),
+  };
+
   document.getElementById('detail-content').innerHTML = `
     <button class="modal-close" onclick="document.getElementById('detail-modal').classList.remove('open')">×</button>
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
-      <div class="modal-title">${t.nom}${t.shortlist?' ★':''}</div>
-      <span class="country-badge badge-${t.pays}" style="margin-top:4px">${COUNTRIES[t.pays]||t.pays}</span>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;padding-right:36px">
+      <div>
+        <div class="modal-title">${t.nom}${t.shortlist?' ★':''}</div>
+        <div class="modal-sub">${t.ville} · ${t.region}</div>
+      </div>
+      <span class="country-badge badge-${t.pays}" style="margin-top:4px;flex-shrink:0">${COUNTRIES[t.pays]||t.pays}</span>
     </div>
-    <div class="modal-sub">${t.ville} · ${t.region}</div>
+
+    <div class="modal-tabs">
+      <button class="modal-tab${activeTab==='detail'?' active':''}" onclick="switchTab('detail')">Fiche</button>
+      <button class="modal-tab${activeTab==='contacts'?' active':''}" onclick="switchTab('contacts')">Contacts ${t.contacts&&t.contacts.length?'('+t.contacts.length+')':''}</button>
+      <button class="modal-tab${activeTab==='journal'?' active':''}" onclick="switchTab('journal')">Journal ${t.journal&&t.journal.length?'('+t.journal.length+')':''}</button>
+    </div>
+
+    <div id="tab-detail" class="tab-panel${activeTab==='detail'?' active':''}">${tabContent.detail}</div>
+    <div id="tab-contacts" class="tab-panel${activeTab==='contacts'?' active':''}">${tabContent.contacts}</div>
+    <div id="tab-journal" class="tab-panel${activeTab==='journal'?' active':''}">${tabContent.journal}</div>
+
+    <div class="modal-actions">
+      <button class="btn-shortlist" onclick="toggleShortlist(${t.id})">${t.shortlist ? '★ Retirer de la shortlist' : '☆ Ajouter à la shortlist'}</button>
+      <button class="btn-delete" onclick="deleteTerrain(${t.id})">Supprimer</button>
+    </div>
+  `;
+}
+
+function renderDetailTab(t) {
+  return `
+    <div class="modal-section">Statut du dossier</div>
+    <div class="status-selector">
+      ${STATUTS.map(s => `<button class="status-btn${t.statut===s?' active-'+statusKey(s):''}" onclick="setStatut(${t.id},'${s}')">${s}</button>`).join('')}
+    </div>
+
     <div class="modal-section">Caractéristiques</div>
     <div class="modal-grid">
       <div class="modal-item"><div class="modal-item-label">Prix d'acquisition</div><div class="modal-item-val">${fmtPrice(t.prix)}</div></div>
@@ -369,31 +521,186 @@ function openDetail(id) {
       <div class="modal-item"><div class="modal-item-label">Ensoleillement</div><div class="modal-item-val">${t.ensoleillement}</div></div>
       <div class="modal-item"><div class="modal-item-label">Accès</div><div class="modal-item-val">${t.acces}</div></div>
       <div class="modal-item"><div class="modal-item-label">Zonage</div><div class="modal-item-val">${t.zonage}</div></div>
-      <div class="modal-item"><div class="modal-item-label">Statut</div>
-        <div class="status-row" style="margin-top:4px"><div class="dot ${dotClass(t.statut)}"></div><span>${t.statut}</span></div>
-      </div>
+      <div class="modal-item"><div class="modal-item-label">Potentiel</div><div class="modal-item-val">${t.potentiel}</div></div>
     </div>
-    <div class="modal-section">Potentiel & risques</div>
-    <div class="modal-item" style="margin-bottom:10px"><div class="modal-item-label">Potentiel hôtelier</div><div class="modal-item-val">${t.potentiel}</div></div>
-    <div class="modal-item"><div class="modal-item-label">Risques identifiés</div><div class="modal-item-val" style="font-size:13px;color:var(--muted)">${t.risques}</div></div>
-    <div class="modal-section">Score & tags</div>
-    <div class="score-wrap" style="margin-bottom:12px">
+
+    <div class="modal-section">Risques & opportunité</div>
+    <div class="modal-item"><div class="modal-item-label">Risques identifiés</div><div class="modal-item-val" style="font-size:13px;color:var(--muted);font-weight:400">${t.risques}</div></div>
+    <div class="score-wrap" style="margin-top:12px">
       <div class="score-top"><span>Score d'opportunité</span><span class="score-num" style="color:${scoreColor(t.score)}">${t.score}/100</span></div>
       <div class="score-bar"><div class="score-fill" style="width:${t.score}%;background:${scoreColor(t.score)}"></div></div>
     </div>
-    <div class="tags">${(t.tags||[]).map(tag=>`<span class="tag">${tag}</span>`).join('')}</div>
-    ${t.notes ? `<div class="modal-section">Notes</div><div class="modal-item"><div class="modal-item-val" style="font-size:13px;color:var(--muted)">${t.notes}</div></div>` : ''}
-    <div class="modal-actions">
-      <button class="btn-shortlist" onclick="toggleShortlist(${t.id})">${t.shortlist ? '★ Retirer de la shortlist' : '☆ Ajouter à la shortlist'}</button>
-      <button class="btn-delete" onclick="deleteTerrain(${t.id})">Supprimer</button>
+    <div class="tags" style="margin-top:10px">${(t.tags||[]).map(tag=>`<span class="tag">${tag}</span>`).join('')}</div>
+
+    <div class="modal-section">Mes notes sur ce terrain</div>
+    <textarea class="edit-field" id="notes-field" rows="4" placeholder="Vos observations, impressions, idées de concept…">${t.notes||''}</textarea>
+    <div style="display:flex;align-items:center;gap:12px">
+      <button class="save-inline" onclick="saveNotes(${t.id})">Enregistrer</button>
+      <span class="save-confirm" id="notes-confirm">✓ Sauvegardé</span>
     </div>
   `;
-  document.getElementById('detail-modal').classList.add('open');
 }
-function closeDetail(e) { if (e.target === document.getElementById('detail-modal')) document.getElementById('detail-modal').classList.remove('open'); }
+
+function renderContactsTab(t) {
+  const contacts = t.contacts || [];
+  let html = '';
+
+  if (contacts.length === 0) {
+    html += `<p style="color:var(--muted);font-size:13px;margin-bottom:16px">Aucun contact enregistré pour ce terrain.</p>`;
+  } else {
+    html += contacts.map((c, i) => `
+      <div class="contact-card">
+        <button class="contact-del" onclick="deleteContact(${t.id},${i})" title="Supprimer">×</button>
+        <div class="contact-name">${c.nom}</div>
+        <div class="contact-role">${c.role||''}</div>
+        <div class="contact-meta">
+          ${c.email ? `<a href="mailto:${c.email}">✉ ${c.email}</a>` : ''}
+          ${c.tel ? `<a href="tel:${c.tel}">📞 ${c.tel}</a>` : ''}
+          ${c.linkedin ? `<a href="${c.linkedin}" target="_blank">in LinkedIn</a>` : ''}
+        </div>
+        ${c.note ? `<div class="contact-note">${c.note}</div>` : ''}
+      </div>
+    `).join('');
+  }
+
+  html += `<button class="btn-add-contact" onclick="toggleAddContact(${t.id})">+ Ajouter un contact</button>`;
+
+  if (showAddContact) {
+    html += `
+      <div class="add-contact-form" style="margin-top:10px">
+        <div class="form-row">
+          <div><label class="edit-label">Nom *</label><input class="edit-field" id="c-nom" placeholder="Jean Dupont" style="resize:none"></div>
+          <div><label class="edit-label">Rôle / Fonction</label><input class="edit-field" id="c-role" placeholder="Agent immobilier, Notaire…" style="resize:none"></div>
+        </div>
+        <div class="form-row" style="margin-top:8px">
+          <div><label class="edit-label">Email</label><input class="edit-field" id="c-email" type="email" placeholder="jean@exemple.com" style="resize:none"></div>
+          <div><label class="edit-label">Téléphone</label><input class="edit-field" id="c-tel" placeholder="+33 6 00 00 00 00" style="resize:none"></div>
+        </div>
+        <div style="margin-top:8px"><label class="edit-label">LinkedIn URL</label><input class="edit-field" id="c-linkedin" placeholder="https://linkedin.com/in/…" style="resize:none"></div>
+        <div style="margin-top:8px"><label class="edit-label">Note sur ce contact</label><textarea class="edit-field" id="c-note" rows="2" placeholder="Source, relation, niveau de confiance…"></textarea></div>
+        <div style="display:flex;gap:10px;margin-top:12px">
+          <button class="save-inline" onclick="saveContact(${t.id})">Ajouter le contact</button>
+          <button onclick="toggleAddContact(${t.id})" style="padding:8px 16px;border:1px solid var(--border);border-radius:8px;background:transparent;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--muted);cursor:pointer">Annuler</button>
+        </div>
+      </div>
+    `;
+  }
+  return html;
+}
+
+function renderJournalTab(t) {
+  const journal = (t.journal || []).slice().reverse();
+  let html = '';
+
+  html += `
+    <div style="margin-bottom:16px">
+      <label class="edit-label" style="margin-top:0">Nouvelle entrée</label>
+      <textarea class="edit-field" id="journal-field" rows="3" placeholder="Visite du terrain, appel avec l'agent, réflexion sur le concept, point investisseur…"></textarea>
+      <button class="save-inline" style="margin-top:8px" onclick="saveJournal(${t.id})">Ajouter au journal</button>
+    </div>
+  `;
+
+  if (journal.length === 0) {
+    html += `<p style="color:var(--muted);font-size:13px">Aucune entrée dans le journal. Commencez à documenter vos échanges et idées.</p>`;
+  } else {
+    html += journal.map((j, i) => `
+      <div class="journal-entry">
+        <button class="journal-del" onclick="deleteJournal(${t.id},${journal.length-1-i})" title="Supprimer">×</button>
+        <div class="journal-date">${fmtDate(j.date)}</div>
+        <div class="journal-text">${j.text.replace(/\n/g,'<br>')}</div>
+      </div>
+    `).join('');
+  }
+  return html;
+}
+
+function switchTab(tab) {
+  activeTab = tab;
+  renderDetail();
+}
+
+// ── Actions ────────────────────────────────────────────────────────────────────
+function setStatut(id, statut) {
+  const t = DB.find(x => x.id === id);
+  if (!t) return;
+  t.statut = statut;
+  saveData(DB);
+  render();
+  renderDetail();
+}
+
+function saveNotes(id) {
+  const t = DB.find(x => x.id === id);
+  if (!t) return;
+  t.notes = document.getElementById('notes-field').value;
+  saveData(DB);
+  render();
+  const c = document.getElementById('notes-confirm');
+  if (c) { c.style.display = 'inline'; setTimeout(() => { c.style.display = 'none'; }, 2000); }
+}
+
+function toggleAddContact(id) {
+  showAddContact = !showAddContact;
+  renderDetail();
+  if (showAddContact) setTimeout(() => { const el = document.getElementById('c-nom'); if (el) el.focus(); }, 50);
+}
+
+function saveContact(id) {
+  const t = DB.find(x => x.id === id);
+  if (!t) return;
+  const nom = (document.getElementById('c-nom').value || '').trim();
+  if (!nom) { alert('Le nom du contact est obligatoire.'); return; }
+  if (!t.contacts) t.contacts = [];
+  t.contacts.push({
+    nom,
+    role: (document.getElementById('c-role').value || '').trim(),
+    email: (document.getElementById('c-email').value || '').trim(),
+    tel: (document.getElementById('c-tel').value || '').trim(),
+    linkedin: (document.getElementById('c-linkedin').value || '').trim(),
+    note: (document.getElementById('c-note').value || '').trim(),
+    date: new Date().toISOString(),
+  });
+  showAddContact = false;
+  saveData(DB);
+  render();
+  renderDetail();
+}
+
+function deleteContact(id, idx) {
+  const t = DB.find(x => x.id === id);
+  if (!t) return;
+  if (!confirm('Supprimer ce contact ?')) return;
+  t.contacts.splice(idx, 1);
+  saveData(DB);
+  render();
+  renderDetail();
+}
+
+function saveJournal(id) {
+  const t = DB.find(x => x.id === id);
+  if (!t) return;
+  const text = (document.getElementById('journal-field').value || '').trim();
+  if (!text) return;
+  if (!t.journal) t.journal = [];
+  t.journal.push({ text, date: new Date().toISOString() });
+  saveData(DB);
+  render();
+  renderDetail();
+}
+
+function deleteJournal(id, idx) {
+  const t = DB.find(x => x.id === id);
+  if (!t) return;
+  if (!confirm('Supprimer cette entrée ?')) return;
+  t.journal.splice(idx, 1);
+  saveData(DB);
+  render();
+  renderDetail();
+}
+
 function toggleShortlist(id) {
   const t = DB.find(x => x.id === id);
-  if (t) { t.shortlist = !t.shortlist; saveData(DB); render(); openDetail(id); }
+  if (t) { t.shortlist = !t.shortlist; saveData(DB); render(); renderDetail(); }
 }
 function deleteTerrain(id) {
   if (!confirm('Supprimer ce terrain définitivement ?')) return;
@@ -402,8 +709,17 @@ function deleteTerrain(id) {
   document.getElementById('detail-modal').classList.remove('open');
   render();
 }
+
+function closeDetailClick(e) {
+  if (e.target === document.getElementById('detail-modal'))
+    document.getElementById('detail-modal').classList.remove('open');
+}
+
 function openAdd() { document.getElementById('add-modal').classList.add('open'); }
-function closeAdd(e) { if (e.target === document.getElementById('add-modal')) document.getElementById('add-modal').classList.remove('open'); }
+function closeAdd(e) {
+  if (e.target === document.getElementById('add-modal'))
+    document.getElementById('add-modal').classList.remove('open');
+}
 function addTerrain() {
   const nom = document.getElementById('f-nom').value.trim();
   const ville = document.getElementById('f-ville').value.trim();
@@ -424,21 +740,22 @@ function addTerrain() {
     tags,
     risques: document.getElementById('f-risques').value.trim() || '—',
     potentiel: document.getElementById('f-potentiel').value.trim() || '—',
-    shortlist: false,
-    notes: document.getElementById('f-notes').value.trim(),
+    shortlist: false, notes: '', contacts: [], journal: [],
   });
   saveData(DB);
   document.getElementById('add-modal').classList.remove('open');
-  ['f-nom','f-ville','f-region','f-prix','f-surface','f-soleil','f-acces','f-zonage','f-potentiel','f-risques','f-tags','f-notes','f-score'].forEach(id => { document.getElementById(id).value = ''; });
+  ['f-nom','f-ville','f-region','f-prix','f-surface','f-soleil','f-acces','f-zonage','f-potentiel','f-risques','f-tags','f-score'].forEach(id => { document.getElementById(id).value = ''; });
   render();
 }
+
 function exportCSV() {
   const data = getFiltered();
-  const headers = ['Nom','Ville','Pays','Région','Surface m²','Prix €','Ensoleillement','Accès','Zonage','Statut','Score','Potentiel','Risques','Shortlist','Tags','Notes'];
+  const headers = ['Nom','Ville','Pays','Région','Surface m²','Prix €','Ensoleillement','Accès','Zonage','Statut','Score','Potentiel','Risques','Shortlist','Tags','Notes','Nb contacts','Nb entrées journal'];
   const rows = data.map(t => [
     t.nom, t.ville, COUNTRIES[t.pays]||t.pays, t.region, t.surface, t.prix,
     t.ensoleillement, t.acces, t.zonage, t.statut, t.score, t.potentiel, t.risques,
-    t.shortlist ? 'Oui' : 'Non', (t.tags||[]).join(' | '), t.notes||''
+    t.shortlist ? 'Oui' : 'Non', (t.tags||[]).join(' | '), t.notes||'',
+    (t.contacts||[]).length, (t.journal||[]).length
   ].map(v => `"${String(v).replace(/"/g,'""')}"`).join(','));
   const csv = [headers.join(','), ...rows].join('\n');
   const blob = new Blob(['\uFEFF'+csv], { type: 'text/csv;charset=utf-8;' });
@@ -447,6 +764,7 @@ function exportCSV() {
   a.download = `terrain_sourcing_${new Date().toISOString().slice(0,10)}.csv`;
   a.click();
 }
+
 render();
 </script>
 </body>
