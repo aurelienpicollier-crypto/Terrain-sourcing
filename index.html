@@ -182,8 +182,20 @@ select:focus{border-color:var(--gold);}
 .form-input:focus{border-color:var(--gold);}
 .btn-submit{padding:11px 22px;background:var(--navy);color:var(--white);border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;width:100%;margin-top:8px;transition:background .15s;}
 .btn-submit:hover{background:var(--slate);}
-.empty{text-align:center;padding:80px 20px;color:var(--muted);grid-column:1/-1;}
-.empty-title{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--navy);margin-bottom:8px;}
+.photo-carousel{position:relative;width:100%;height:220px;border-radius:12px;overflow:hidden;margin-bottom:14px;background:var(--smoke);}
+.photo-carousel img{width:100%;height:100%;object-fit:cover;display:block;transition:opacity .3s;}
+.photo-carousel img.loading{opacity:0;}
+.carousel-nav{position:absolute;top:50%;transform:translateY(-50%);background:rgba(13,31,60,.55);border:none;color:white;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:background .15s;}
+.carousel-nav:hover{background:rgba(13,31,60,.85);}
+.carousel-prev{left:10px;}.carousel-next{right:10px;}
+.carousel-dots{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);display:flex;gap:5px;}
+.carousel-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.5);cursor:pointer;border:none;transition:background .15s;}
+.carousel-dot.active{background:white;}
+.photo-credit{font-size:10px;color:var(--muted);text-align:right;margin-top:-10px;margin-bottom:10px;}
+.photo-url-input{display:flex;gap:6px;margin-top:6px;}
+.photo-url-input input{flex:1;padding:6px 10px;border:1px solid var(--border);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:11px;background:var(--cream);color:var(--text);outline:none;}
+.photo-url-input input:focus{border-color:var(--gold);}
+.photo-url-input button{padding:6px 12px;border:none;border-radius:7px;background:var(--navy);color:white;font-family:'DM Sans',sans-serif;font-size:11px;cursor:pointer;white-space:nowrap;}
 
 /* ── SIDEBAR ── */
 .list-layout{display:flex;height:calc(100vh - 60px);overflow:hidden;}
@@ -465,11 +477,16 @@ function parseCSV(text){
       potentiel:row.potentiel||'—',
       risques:row.risques||'—',
       tags:row.tags?row.tags.split(',').map(s=>s.trim()).filter(Boolean):[],
+      photo_url:row.photo_url||row['photo url']||'',
+      photo_url_1:row.photo_url_1||row['photo_url1']||'',
+      photo_url_2:row.photo_url_2||row['photo_url2']||'',
+      photo_url_3:row.photo_url_3||row['photo_url3']||'',
       // preserve local data
       shortlist:localMatch?localMatch.shortlist:false,
       notes:localMatch?localMatch.notes:'',
       contacts:localMatch?localMatch.contacts:[],
       journal:localMatch?localMatch.journal:[],
+      photos:localMatch?localMatch.photos:[],
     };
   }).filter(t=>t.nom);
 }
@@ -883,7 +900,86 @@ function renderDetail(){
     </div>
   `;
 }
+function getPhotoUrls(t){
+  // Collect all photo URLs from the terrain (photo_url, photo_url_1, photo_url_2, photo_url_3)
+  const urls=[];
+  if(t.photo_url&&t.photo_url.startsWith('http'))urls.push(t.photo_url);
+  if(t.photo_url_1&&t.photo_url_1.startsWith('http'))urls.push(t.photo_url_1);
+  if(t.photo_url_2&&t.photo_url_2.startsWith('http'))urls.push(t.photo_url_2);
+  if(t.photo_url_3&&t.photo_url_3.startsWith('http'))urls.push(t.photo_url_3);
+  // Also check locally stored photos
+  if(t.photos&&t.photos.length)t.photos.forEach(p=>{if(p&&p.startsWith('http')&&!urls.includes(p))urls.push(p);});
+  // Fallback: auto-generate from Unsplash by city name
+  if(!urls.length){
+    const query=encodeURIComponent((t.ville||t.nom||'mediterranean').replace(/[^\w\s]/g,'').trim());
+    urls.push(`https://source.unsplash.com/800x500/?${query},mediterranean,luxury`);
+    urls.push(`https://source.unsplash.com/800x500/?${encodeURIComponent(COUNTRIES[t.pays]||'europe')},coast,luxury`);
+  }
+  return urls;
+}
+
+function renderCarousel(t){
+  const urls=getPhotoUrls(t);
+  const dots=urls.length>1?`<div class="carousel-dots">${urls.map((_,i)=>`<button class="carousel-dot${i===0?' active':''}" onclick="carouselGoto(${t.id},${i})"></button>`).join('')}</div>`:'';
+  const navs=urls.length>1?`<button class="carousel-nav carousel-prev" onclick="carouselPrev(${t.id})">&#8249;</button><button class="carousel-nav carousel-next" onclick="carouselNext(${t.id})">&#8250;</button>`:'';
+  return`
+    <div class="photo-carousel" id="carousel-${t.id}" data-idx="0" data-urls='${JSON.stringify(urls)}'>
+      <img id="carousel-img-${t.id}" src="${urls[0]}" alt="${t.nom}" onload="this.classList.remove('loading')" onerror="this.src='https://source.unsplash.com/800x500/?mediterranean,luxury,coast'" class="loading">
+      ${navs}${dots}
+    </div>
+    <div class="photo-credit">Photos : Unsplash / sources publiques — à remplacer par vos propres photos dans Google Sheets</div>
+  `;
+}
+
+function carouselGoto(id,idx){
+  const el=document.getElementById('carousel-'+id);
+  const img=document.getElementById('carousel-img-'+id);
+  if(!el||!img)return;
+  const urls=JSON.parse(el.dataset.urls||'[]');
+  if(!urls[idx])return;
+  el.dataset.idx=idx;
+  img.classList.add('loading');
+  img.src=urls[idx];
+  img.onload=()=>img.classList.remove('loading');
+  el.querySelectorAll('.carousel-dot').forEach((d,i)=>d.classList.toggle('active',i===idx));
+}
+function carouselPrev(id){
+  const el=document.getElementById('carousel-'+id);if(!el)return;
+  const urls=JSON.parse(el.dataset.urls||'[]');
+  const idx=(parseInt(el.dataset.idx||0)-1+urls.length)%urls.length;
+  carouselGoto(id,idx);
+}
+function carouselNext(id){
+  const el=document.getElementById('carousel-'+id);if(!el)return;
+  const urls=JSON.parse(el.dataset.urls||'[]');
+  const idx=(parseInt(el.dataset.idx||0)+1)%urls.length;
+  carouselGoto(id,idx);
+}
+
+function addPhoto(id){
+  const input=document.getElementById('photo-input-'+id);
+  if(!input)return;
+  const url=input.value.trim();
+  if(!url||!url.startsWith('http')){alert('Entrez une URL valide commençant par http');return;}
+  const t=DB.find(x=>x.id===id);if(!t)return;
+  if(!t.photos)t.photos=[];
+  if(t.photos.length>=5){alert('Maximum 5 photos par terrain');return;}
+  t.photos.push(url);
+  saveData(DB);
+  input.value='';
+  renderDetail();
+}
+
 function renderDetailTab(t){return`
+  ${renderCarousel(t)}
+
+  <div class="modal-section">Ajouter une photo</div>
+  <div class="photo-url-input">
+    <input id="photo-input-${t.id}" placeholder="https://... (URL d'une photo Unsplash, Google Drive, etc.)" onkeydown="if(event.key==='Enter')addPhoto(${t.id})">
+    <button onclick="addPhoto(${t.id})">+ Ajouter</button>
+  </div>
+  ${(t.photos||[]).length?`<div style="margin-top:6px;font-size:11px;color:var(--muted)">${(t.photos||[]).map((p,i)=>`<span style="display:flex;align-items:center;gap:4px;margin-top:3px"><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p}</span><button onclick="removePhoto(${t.id},${i})" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:13px;flex-shrink:0">×</button></span>`).join('')}</div>`:''}
+
   <div class="modal-section">Statut du dossier</div>
   <div class="status-selector">${STATUTS.map(s=>`<button class="status-btn${t.statut===s?' active-'+statusKey(s):''}" onclick="setStatut(${t.id},'${s}')">${s}</button>`).join('')}</div>
 
@@ -1082,6 +1178,14 @@ function deleteJournal(id,idx){
   if(!confirm('Supprimer cette entrée ?'))return;
   t.journal.splice(idx,1);saveData(DB);render();renderDetail();
 }
+function removePhoto(id,idx){
+  const t=DB.find(x=>x.id===id);if(!t)return;
+  if(!t.photos)return;
+  t.photos.splice(idx,1);
+  saveData(DB);
+  renderDetail();
+}
+
 function toggleShortlist(id){
   const t=DB.find(x=>x.id===id);if(!t)return;
   t.shortlist=!t.shortlist;saveData(DB);render();if(mapInitialized)updateMapMarkers();renderDetail();
@@ -1120,3 +1224,4 @@ render();
 </script>
 </body>
 </html>
+
