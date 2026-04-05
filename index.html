@@ -901,19 +901,23 @@ function renderDetail(){
   `;
 }
 function getPhotoUrls(t){
-  // Collect all photo URLs from the terrain (photo_url, photo_url_1, photo_url_2, photo_url_3)
   const urls=[];
   if(t.photo_url&&t.photo_url.startsWith('http'))urls.push(t.photo_url);
   if(t.photo_url_1&&t.photo_url_1.startsWith('http'))urls.push(t.photo_url_1);
   if(t.photo_url_2&&t.photo_url_2.startsWith('http'))urls.push(t.photo_url_2);
   if(t.photo_url_3&&t.photo_url_3.startsWith('http'))urls.push(t.photo_url_3);
-  // Also check locally stored photos
   if(t.photos&&t.photos.length)t.photos.forEach(p=>{if(p&&p.startsWith('http')&&!urls.includes(p))urls.push(p);});
-  // Fallback: auto-generate from Unsplash by city name
   if(!urls.length){
-    const query=encodeURIComponent((t.ville||t.nom||'mediterranean').replace(/[^\w\s]/g,'').trim());
-    urls.push(`https://source.unsplash.com/800x500/?${query},mediterranean,luxury`);
-    urls.push(`https://source.unsplash.com/800x500/?${encodeURIComponent(COUNTRIES[t.pays]||'europe')},coast,luxury`);
+    // Curated Picsum seeds by country — consistent landscape feel per destination
+    const countrySeeds={
+      FR:[10,11,12],IT:[20,21,22],ES:[30,31,32],GR:[40,41,42],
+      PT:[50,51,52],HR:[60,61,62],ME:[70,71,72],MA:[80,81,82]
+    };
+    const seeds=countrySeeds[t.pays]||[90,91,92];
+    const offset=(t.id||1)%10;
+    urls.push(`https://picsum.photos/seed/${seeds[0]+offset}/800/500`);
+    urls.push(`https://picsum.photos/seed/${seeds[1]+offset}/800/500`);
+    urls.push(`https://picsum.photos/seed/${seeds[2]+offset}/800/500`);
   }
   return urls;
 }
@@ -924,7 +928,7 @@ function renderCarousel(t){
   const navs=urls.length>1?`<button class="carousel-nav carousel-prev" onclick="carouselPrev(${t.id})">&#8249;</button><button class="carousel-nav carousel-next" onclick="carouselNext(${t.id})">&#8250;</button>`:'';
   return`
     <div class="photo-carousel" id="carousel-${t.id}" data-idx="0" data-urls='${JSON.stringify(urls)}'>
-      <img id="carousel-img-${t.id}" src="${urls[0]}" alt="${t.nom}" onload="this.classList.remove('loading')" onerror="this.src='https://source.unsplash.com/800x500/?mediterranean,luxury,coast'" class="loading">
+      <img id="carousel-img-${t.id}" src="${urls[0]}" alt="${t.nom}" onload="this.classList.remove('loading')" onerror="this.src='https://picsum.photos/seed/99/800/500'" class="loading">
       ${navs}${dots}
     </div>
     <div class="photo-credit">Photos : Unsplash / sources publiques — à remplacer par vos propres photos dans Google Sheets</div>
@@ -1224,4 +1228,3 @@ render();
 </script>
 </body>
 </html>
-
